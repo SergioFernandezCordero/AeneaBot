@@ -14,7 +14,7 @@ import json
 
 from bs4 import BeautifulSoup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from telegram import ChatAction
+from telegram import ChatAction, Location
 
 from config import config
 
@@ -70,68 +70,95 @@ def error(bot, update, error):
 def tiempo(bot, update):
     authorization = auth(bot, update)
     if authorization is 0:
-        appkey = config.get('OWM')
-        if not appkey:
-            bot.sendMessage(update.message.chat_id, text='No tengo token de OWM')
+        # WELL, PERHAPS SOME DAY
+        # Get user location and data
+        # user_location = update.message.location
+        # print(user_location)
+        # Register user location (just fot the lulz)
+        # logger.info("Location: %f / %f"
+        #            % (user_location.latitude, user_location.longitude))
+
+        # Initalize coordinates
+        # lon = update.message.location.latitude
+        # lat = update.message.location.longitude
+        lon = None
+        lat = None
+
+        if not lon or not lat:
+            # Home sweet home
+            lat = 40.372180
+            lon = -3.759953
+
+        # Building URL to query the service
+        url_service = 'http://202.127.24.18/bin/astro.php'
+        url_params = {'lon': str(lon), 'lat': str(lat), 'output': "json", 'tzshift': "0", 'unit': "metric", 'ac': "0"}
+
+        # Query service
+        timer7 = requests.get(url_service, params=url_params)
+        if timer7.status_code > 299:
+            bot.sendMessage(update.message.chat_id, text='No puedo recuperar la información meteorológica')
             return
 
-        # TODO: Accept parameters on this call
-        city = None
+        json_timer7 = timer7.json()
 
-        if not city:
-            city = "Madrid,ES"
+        # Data for today
+        timer7_data = json_timer7["dataseries"][1]
+        timer7_cloud = json_timer7["dataseries"][1]["cloudcover"]
+        timer7_temp = json_timer7["dataseries"][1]["temp2m"]
+        timer7_precipitation = json_timer7["dataseries"][1]["prec_type"]
 
-        params = {"q": city, "APPID": appkey, "units": "metric"}
-
-        weatherdata = requests.get('http://api.openweathermap.org/data/2.5/forecast/city', params=params)
-        if "list" in weatherdata.json():
-            weather = weatherdata.json()['list']
-            today = datetime.datetime.now()
-            current_day = today
-            for day in range(0, 3):
-                if day > 0:
-                    current_day = today + datetime.timedelta(days=day)
-                    if current_day.hour > 5:
-                        current_day -= datetime.timedelta(hours=3)
-
-                    if day == 1:
-                        date_string = "Mañana"
-
-                    else:
-                        date_string = "El {0}".format(WEEKDAYS[current_day.isoweekday()])
-
-                else:
-                    date_string = "Hoy"
-
-                night = None
-                for element in weather:
-                    forecast_time = datetime.datetime.fromtimestamp(element['dt'])
-                    if forecast_time.month == current_day.month and forecast_time.day == current_day.day and forecast_time.hour >= 5:
-                        night = element
-
-                if not night and day == 0:
-                    weather_message = 'Asómate a la ventana, o sal del bar, que ya es de noche'
-
-                else:
-                    if night and night['main']:
-                        weather_message = date_string + " tendremos unos {0}º con una humedad relativa de {1}%, ".format(
-                            night['main']['temp'],
-                            night['main']['humidity'])
-
-                        if night['wind']:
-                            weather_message += "vientos de {0} km\\h y una cobertura de nubes del {1}%".format(
-                                night['wind']['speed'],
-                                night['clouds']['all'])
-
-                        else:
-                            weather_message += "sin vientos y con una cobertura de nubes del {0}%".format(
-                                night['clouds']['all'])
-
-                        bot.sendMessage(update.message.chat_id, text=weather_message)
-
+        # Conditions where observation is imposible: 100% cloud or rain
+        if timer7_precipitation == "rain":
+            mensaje_lluvia = " lloverá"
         else:
-            weather_message = 'No puedo recuperar datos meteorológicos en este momento.'
-            bot.sendMessage(update.message.chat_id, text=weather_message)
+            mensaje_lluvia = " no lloverá"
+
+        # Compose messages about clouds
+        if 3 < timer7_cloud < 5:
+            mensaje_cloud = " habrá bastantes nubes"
+        elif 3 > timer7_cloud > 1:
+            mensaje_cloud = " habrá pocas nubes"
+        elif timer7_cloud == 1:
+            mensaje_cloud = " habrá cielo despejado"
+        elif timer7_cloud > 5:
+            mensaje_cloud = " estará muy nublado"
+
+        # Message about temperature
+        mensaje_temp = " y habrá una temperatura de " + str(timer7_temp) + " grados celsius (via timer7)"
+
+        # Tomorrow forecast
+        timer7_data_tomorrow= json_timer7["dataseries"][7]
+        timer7_cloud_tomorrow = json_timer7["dataseries"][7]["cloudcover"]
+        timer7_temp_tomorrow = json_timer7["dataseries"][7]["temp2m"]
+        timer7_precipitation_tomorrow = json_timer7["dataseries"][7]["prec_type"]
+
+        # Conditions where observation is imposible: 100% cloud or rain
+        if timer7_precipitation_tomorrow == "rain":
+            mensaje_lluvia_tomorrow = " lloverá"
+        else:
+            mensaje_lluvia_tomorrow = " no lloverá"
+
+        # Compose messages about clouds
+        if 3 < timer7_cloud_tomorrow < 5:
+            mensaje_cloud_tomorrow = " habrá bastantes nubes"
+        elif 3 > timer7_cloud_tomorrow > 1:
+            mensaje_cloud_tomorrow = " habrá pocas nubes"
+        elif timer7_cloud_tomorrow == 1:
+            mensaje_cloud_tomorrow = " habrá cielo despejado"
+        elif timer7_cloud_tomorrow > 5:
+            mensaje_cloud_tomorrow = " estará muy nublado"
+
+        # Message about temperature
+        mensaje_temp_tomorrow = " y habrá una temperatura de " + str(timer7_temp) + " grados celsius (via timer7)"
+
+        # Now compose full message
+        mensaje_today = "Hoy en casa" + mensaje_lluvia + "," + mensaje_cloud + "," + mensaje_temp
+        mensaje_tomorrow = "Mañana en casa" + mensaje_lluvia_tomorrow + "," + mensaje_cloud_tomorrow + "," + mensaje_temp_tomorrow
+
+        # Vomit the response
+        bot.sendMessage(update.message.chat_id, text=mensaje_today)
+        bot.sendMessage(update.message.chat_id, text=mensaje_tomorrow)
+        return
 
 
 def main():
