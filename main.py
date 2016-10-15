@@ -9,6 +9,7 @@ import logging
 import sys
 
 import requests
+import wikipedia
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, RegexHandler, ConversationHandler
 from telegram import ReplyKeyboardMarkup
 import git
@@ -64,27 +65,27 @@ def error(bot, update, error):
 
 
 # This is were the fun begins
-def tiempo(bot, update):
+def tiempo(bot, update, args):
+    lugar = args[0]
+    dataargs = lugar.lower()
     authorization = auth(bot, update)
     if authorization is 0:
-        # WELL, PERHAPS SOME DAY
-        # Get user location and data
-        # user_location = update.message.location
-        # print(user_location)
-        # Register user location (just fot the lulz)
-        # logger.info("Location: %f / %f"
-        #            % (user_location.latitude, user_location.longitude))
-
-        # Initalize coordinates
-        # lon = update.message.location.latitude
-        # lat = update.message.location.longitude
-        lon = None
-        lat = None
-
-        if not lon or not lat:
-            # Home sweet home
+        if dataargs == "casa":
             lat = 40.372180
             lon = -3.759953
+        elif dataargs == "yebes":
+            lat = 40.582964
+            lon = -3.116039
+        elif dataargs == "alfa":
+            lat = 40.444795
+            lon = -4.245248
+        elif dataargs == "stratio":
+            lat = 40.440842
+            lon = -3.786091
+        else:
+            mensaje = "Lo siento, localizacion no contemplada"
+            bot.sendMessage(update.message.chat_id, text=mensaje)
+            return
 
         # Building URL to query the service
         url_service = 'http://202.127.24.18/bin/astro.php'
@@ -98,88 +99,55 @@ def tiempo(bot, update):
 
         json_timer7 = timer7.json()
 
-        # Data for today
-        timer7_data = json_timer7["dataseries"][1]
-        timer7_cloud = json_timer7["dataseries"][1]["cloudcover"]
-        timer7_temp = json_timer7["dataseries"][1]["temp2m"]
-        timer7_precipitation = json_timer7["dataseries"][1]["prec_type"]
+        # Recover data for today (dataseries 1) and tomorrow (dataseries 7)
+        for data in range(1, 13, 6):
+            timer7_data = json_timer7["dataseries"][data]
+            timer7_cloud = json_timer7["dataseries"][data]["cloudcover"]
+            timer7_temp = json_timer7["dataseries"][data]["temp2m"]
+            timer7_precipitation = json_timer7["dataseries"][data]["prec_type"]
 
-        # Conditions where observation is imposible: 100% cloud or rain
-        if timer7_precipitation == "rain":
-            mensaje_lluvia = " lloverá"
-        else:
-            mensaje_lluvia = " no lloverá"
+            # Test if it will rain or not (important for laundry day!)
+            if timer7_precipitation == "rain":
+                mensaje_lluvia = " lloverá"
+            else:
+                mensaje_lluvia = " no lloverá"
 
-        # Compose messages about clouds
-        if 3 < timer7_cloud < 5:
-            mensaje_cloud = " habrá bastantes nubes"
-        elif 3 > timer7_cloud > 1:
-            mensaje_cloud = " habrá pocas nubes"
-        elif timer7_cloud == 1:
-            mensaje_cloud = " habrá cielo despejado"
-        elif timer7_cloud > 5:
-            mensaje_cloud = " estará muy nublado"
+            # Compose messages about clouds
+            if 3 < timer7_cloud < 5:
+                mensaje_cloud = " habrá bastantes nubes"
+            elif 3 > timer7_cloud > 1:
+                mensaje_cloud = " habrá pocas nubes"
+            elif timer7_cloud == 1:
+                mensaje_cloud = " habrá cielo despejado"
+            elif timer7_cloud > 5:
+                mensaje_cloud = " estará muy nublado"
+            else:
+                mensaje_cloud = " no habrá nubes"
 
-        # Message about temperature
-        mensaje_temp = " y habrá una temperatura de " + str(timer7_temp) + " grados celsius (via timer7)"
+            # Message about temperature
+            mensaje_temp = " y habrá una temperatura de " + str(timer7_temp) + " grados."
 
-        # Tomorrow forecast
-        timer7_data_tomorrow= json_timer7["dataseries"][7]
-        timer7_cloud_tomorrow = json_timer7["dataseries"][7]["cloudcover"]
-        timer7_temp_tomorrow = json_timer7["dataseries"][7]["temp2m"]
-        timer7_precipitation_tomorrow = json_timer7["dataseries"][7]["prec_type"]
+            # Now compose full message
+            if data is 1:
+                mensaje = "Hoy en " + lugar + mensaje_lluvia + "," + mensaje_cloud + "," + mensaje_temp
+            else:
+                mensaje = "Mañana en " + lugar + mensaje_lluvia + "," + mensaje_cloud + "," + mensaje_temp
 
-        # Conditions where observation is imposible: 100% cloud or rain
-        if timer7_precipitation_tomorrow == "rain":
-            mensaje_lluvia_tomorrow = " lloverá"
-        else:
-            mensaje_lluvia_tomorrow = " no lloverá"
-
-        # Compose messages about clouds
-        if 3 < timer7_cloud_tomorrow < 5:
-            mensaje_cloud_tomorrow = " habrá bastantes nubes"
-        elif 3 > timer7_cloud_tomorrow > 1:
-            mensaje_cloud_tomorrow = " habrá pocas nubes"
-        elif timer7_cloud_tomorrow == 1:
-            mensaje_cloud_tomorrow = " habrá cielo despejado"
-        elif timer7_cloud_tomorrow > 5:
-            mensaje_cloud_tomorrow = " estará muy nublado"
-
-        # Message about temperature
-        mensaje_temp_tomorrow = " y habrá una temperatura de " + str(timer7_temp) + " grados celsius (via timer7)"
-
-        # Now compose full message
-        mensaje_today = "Hoy en casa" + mensaje_lluvia + "," + mensaje_cloud + "," + mensaje_temp
-        mensaje_tomorrow = "Mañana en casa" + mensaje_lluvia_tomorrow + "," + mensaje_cloud_tomorrow + "," + mensaje_temp_tomorrow
-
-        # Vomit the response
-        bot.sendMessage(update.message.chat_id, text=mensaje_today)
-        bot.sendMessage(update.message.chat_id, text=mensaje_tomorrow)
-        return
+            # Vomit the response
+            bot.sendMessage(update.message.chat_id, text=mensaje)
+    return
 
 
-def deploy(bot, update):
+# Simple job for wikipedia info searches
+def info(bot, update, args):
     authorization = auth(bot, update)
     if authorization is 0:
-        bot.sendMessage(update.message.chat_id, text="Ok, deplegando aplicación")
-
-def nodeploy(bot, update):
-    authorization = auth(bot, update)
-    if authorization is 0:
-        bot.sendMessage(update.message.chat_id, text="Ok, cancelando")
-
-def astrodeploy(bot, update):
-    authorization = auth(bot, update)
-    if authorization is 0:
-        reply_keyboard = [['Si', 'No']]
-        bot.sendMessage(chat=update.message.chat_id,text="Esto desplegará la web de Astropirados desde Git. ¿Está seguro?",reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
-
-
-start_handler = CommandHandler('Si', deploy)
-start_handler = CommandHandler('No', nodeploy)
-dispatcher.add_handler(deploy)
-dispatcher.add_handler(nodeploy)
-
+        wikipedia.set_lang("es")  # Hey, I'm spanish
+        searchstring = ' '.join(args)
+        searchresult = wikipedia.page(searchstring)
+        search_content = searchresult.content
+        search_url = searchresult.url
+        bot.sendMessage(update.message.chat_id, text=search_url)
 
 def main():
     token = config.get('TOKEN')
@@ -194,8 +162,8 @@ def main():
     # on different commands - answer in Telegram
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help))
-    dispatcher.add_handler(CommandHandler("tiempo", tiempo))
-    dispatcher.add_handler(CommandHandler("astrodeploy", astrodeploy))
+    dispatcher.add_handler(CommandHandler("tiempo", tiempo, pass_args=True))
+    dispatcher.add_handler(CommandHandler("info", info, pass_args=True))
 
     # log all errors
     dispatcher.add_error_handler(error)
