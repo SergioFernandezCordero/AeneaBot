@@ -6,15 +6,12 @@
 #
 
 import logging
-import requests
 import sys
-import datetime
-import random
-import json
 
-from bs4 import BeautifulSoup
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from telegram import ChatAction, Location
+import requests
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, RegexHandler, ConversationHandler
+from telegram import ReplyKeyboardMarkup
+import git
 
 from config import config
 
@@ -161,6 +158,29 @@ def tiempo(bot, update):
         return
 
 
+def deploy(bot, update):
+    authorization = auth(bot, update)
+    if authorization is 0:
+        bot.sendMessage(update.message.chat_id, text="Ok, deplegando aplicación")
+
+def nodeploy(bot, update):
+    authorization = auth(bot, update)
+    if authorization is 0:
+        bot.sendMessage(update.message.chat_id, text="Ok, cancelando")
+
+def astrodeploy(bot, update):
+    authorization = auth(bot, update)
+    if authorization is 0:
+        reply_keyboard = [['Si', 'No']]
+        bot.sendMessage(chat=update.message.chat_id,text="Esto desplegará la web de Astropirados desde Git. ¿Está seguro?",reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
+
+
+start_handler = CommandHandler('Si', deploy)
+start_handler = CommandHandler('No', nodeploy)
+dispatcher.add_handler(deploy)
+dispatcher.add_handler(nodeploy)
+
+
 def main():
     token = config.get('TOKEN')
 
@@ -175,7 +195,7 @@ def main():
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("tiempo", tiempo))
-
+    dispatcher.add_handler(CommandHandler("astrodeploy", astrodeploy))
 
     # log all errors
     dispatcher.add_error_handler(error)
