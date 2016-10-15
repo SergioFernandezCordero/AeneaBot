@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 # Stupid auth function. dafuq
 def auth(bot, update):
     user = update.message.from_user.username  # Received username
-    authorized_user = "ElAutoestopista"  # Authorized username, you know...
+    authorized_user = config.get('AUTHUSER')  # Authorized username, you know...
     if user != authorized_user:
         auth_message = 'No está autorizado a utilizar este bot, ' + str(user)
         bot.sendMessage(update.message.chat_id, text=auth_message)
@@ -50,7 +50,9 @@ def auth(bot, update):
 
 
 def start(bot, update):
-    bot.sendMessage(update.message.chat_id, text='Aenea lista')
+    authorization = auth(bot, update)
+    if authorization is 0:
+        bot.sendMessage(update.message.chat_id, text='Aenea lista, autoestopista. ¿En qué puedo ayudarte hoy?')
 
 
 def help(bot, update):
@@ -83,7 +85,7 @@ def tiempo(bot, update, args):
             lat = 40.440842
             lon = -3.786091
         else:
-            mensaje = "Lo siento, localizacion no contemplada"
+            mensaje = "Lo siento, esa localizacion no está disponible"
             bot.sendMessage(update.message.chat_id, text=mensaje)
             return
 
@@ -94,7 +96,7 @@ def tiempo(bot, update, args):
         # Query service
         timer7 = requests.get(url_service, params=url_params)
         if timer7.status_code > 299:
-            bot.sendMessage(update.message.chat_id, text='No puedo recuperar la información meteorológica')
+            bot.sendMessage(update.message.chat_id, text='¡No puedo recuperar la información meteorológica!')
             return
 
         json_timer7 = timer7.json()
@@ -142,12 +144,17 @@ def tiempo(bot, update, args):
 def info(bot, update, args):
     authorization = auth(bot, update)
     if authorization is 0:
-        wikipedia.set_lang("es")  # Hey, I'm spanish
-        searchstring = ' '.join(args)
-        searchresult = wikipedia.page(searchstring)
-        search_content = searchresult.content
-        search_url = searchresult.url
-        bot.sendMessage(update.message.chat_id, text=search_url)
+        try:
+            language = config.get('LANG')
+            wikipedia.set_lang(language)
+            searchstring = ' '.join(args)
+            searchresult = wikipedia.page(searchstring)
+            search_content = searchresult.content
+            search_url = searchresult.url
+            bot.sendMessage(update.message.chat_id, text=search_url)
+        except IOError:
+            bot.sendMessage(update.message.chat_id, text="¡Wikipedia no está disponible!")
+
 
 def main():
     token = config.get('TOKEN')

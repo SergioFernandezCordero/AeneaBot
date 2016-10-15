@@ -2,5 +2,6 @@
 
 config = {
     "TOKEN": "Your telegram bot token goes here",
-    "OWM": "Your OpenWeatherMap token geos here"
+    "AUTHUSER": "Authorized username, you know",
+    "LANG": "Language user for APIs"
 }
