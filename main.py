@@ -37,6 +37,10 @@ logger = logging.getLogger(__name__)
 # Define a few command handlers. These usually take the two arguments bot and
 # update. Error handlers also receive the raised TelegramError object in error.
 
+# Identify your bot
+botname = config.get('BOTNAME')
+
+
 # Stupid auth function. dafuq
 def auth(bot, update):
     user = update.message.from_user.username  # Received username
@@ -52,14 +56,15 @@ def auth(bot, update):
 def start(bot, update):
     authorization = auth(bot, update)
     if authorization is 0:
-        bot.sendMessage(update.message.chat_id, text='Aenea lista, autoestopista. ¿En qué puedo ayudarte hoy?')
+        mensaje = botname + " lista, autoestopista. ¿En qué puedo ayudarte hoy?"
+        bot.sendMessage(update.message.chat_id, text=mensaje)
 
 
 def help(bot, update):
     authorization = auth(bot, update)
     if authorization is 0:
-        bot.sendMessage(update.message.chat_id, text="""Soy Aenea, bot de servicio. Aún no tengo funciones definidas.
-                    """)
+        mensaje = "Soy " + botname + ", bot de servicio. Aún no tengo funciones definidas"
+        bot.sendMessage(update.message.chat_id, text=mensaje)
 
 
 def error(bot, update, error):
@@ -144,16 +149,22 @@ def tiempo(bot, update, args):
 def info(bot, update, args):
     authorization = auth(bot, update)
     if authorization is 0:
+        language = config.get('LANG')
+        wikipedia.set_lang(language)
+        searchstring = ' '.join(args)
         try:
-            language = config.get('LANG')
-            wikipedia.set_lang(language)
-            searchstring = ' '.join(args)
             searchresult = wikipedia.page(searchstring)
             search_content = searchresult.content
             search_url = searchresult.url
             bot.sendMessage(update.message.chat_id, text=search_url)
-        except IOError:
-            bot.sendMessage(update.message.chat_id, text="¡Wikipedia no está disponible!")
+        except ConnectionError:
+            bot.sendMessage(update.message.chat_id, text="Wikipedia no está disponible")
+        except wikipedia.exceptions.DisambiguationError as disambiguation:
+            disambiguation_options = disambiguation.options[0:-2]
+            disambiguation_string = "Se han encontrado resultados para " + ', '.join(disambiguation_options) + ". Por favor, especifique"
+            bot.sendMessage(update.message.chat_id, text=disambiguation_string)
+        except wikipedia.exceptions.PageError as wikierror:
+            bot.sendMessage(update.message.chat_id, text="Sin resultados para " + searchstring)
 
 
 def main():
@@ -185,5 +196,5 @@ def main():
 
 
 if __name__ == "__main__":
-    print("Arrancando Aenea...")
+    print("Arrancando " + botname + "...")
     main()

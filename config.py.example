@@ -2,6 +2,7 @@
 
 config = {
     "TOKEN": "Your telegram bot token goes here",
+    "BOTNAME": "Name of your bot",
     "AUTHUSER": "Authorized username, you know",
     "LANG": "Language user for APIs"
 }
