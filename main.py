@@ -55,8 +55,9 @@ def auth(bot, update):
 
 def start(bot, update):
     authorization = auth(bot, update)
+    user = update.message.from_user.username
     if authorization is 0:
-        mensaje = botname + " lista, autoestopista. ¿En qué puedo ayudarte hoy?"
+        mensaje = botname + " lista, " + user + ". ¿En qué puedo ayudarte hoy?"
         bot.sendMessage(update.message.chat_id, text=mensaje)
 
 
@@ -73,25 +74,36 @@ def error(bot, update, error):
 
 # This is were the fun begins
 def tiempo(bot, update, args):
-    lugar = args[0]
-    dataargs = lugar.lower()
     authorization = auth(bot, update)
     if authorization is 0:
-        if dataargs == "casa":
-            lat = 40.372180
-            lon = -3.759953
-        elif dataargs == "yebes":
-            lat = 40.582964
-            lon = -3.116039
-        elif dataargs == "alfa":
-            lat = 40.444795
-            lon = -4.245248
-        elif dataargs == "stratio":
-            lat = 40.440842
-            lon = -3.786091
+        # Check input
+        if not args:
+            # No input, no way
+            bot.sendMessage(update.message.chat_id, text='¿De dónde?')
+            return
         else:
-            mensaje = "Lo siento, esa localizacion no está disponible"
-            bot.sendMessage(update.message.chat_id, text=mensaje)
+            lugar = ' '.join(args)
+            dataargs = lugar.lower()
+
+        # Let's do some mapgeo magic...
+        apikey = config.get('MAPREQUEST')
+        if not apikey:
+            bot.sendMessage(update.message.chat_id, text='No tengo clave de API para geolocalizacion')
+            return
+        # Build URL as usual
+        map_url = 'http://www.mapquestapi.com/geocoding/v1/address'
+        map_params = {'key': apikey, 'location': str(dataargs), 'maxResults': 1}
+        # Get LAT/LON for a location
+        try:
+            mapgeo = requests.get(map_url, params=map_params)
+            json_mapgeo = mapgeo.json()
+            mapgeo_lat = json_mapgeo["results"][0]["locations"][0]["latLng"]["lat"]
+            mapgeo_lon = json_mapgeo["results"][0]["locations"][0]["latLng"]["lng"]
+            lat = mapgeo_lat
+            lon = mapgeo_lon
+        except ConnectionError:
+            # Something went wrong?
+            bot.sendMessage(update.message.chat_id, text="Servicio de geolocalización no disponible")
             return
 
         # Building URL to query the service
