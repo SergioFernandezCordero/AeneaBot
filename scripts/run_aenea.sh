@@ -10,7 +10,7 @@ case "$1" in
     start)
         if [ -d ${AENEA_HOME} ] && [ -f ${AENEA_HOME}/${AENEA_BIN} ]; then
                 echo -n "Running Aenea     "
-                python3 ${AENEA_HOME}/${AENEA_BIN} > /dev/null &
+                python3 ${AENEA_HOME}/${AENEA_BIN} > /dev/null 2>&1
                 if [ $? -eq 0 ]; then
                     echo "OK"
                 else
