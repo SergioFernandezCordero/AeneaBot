@@ -1,4 +1,3 @@
-# astrobeerbot
-A simple telegram bot for the Astropirados group. Feel free to add new functionality that would help fellow astronomers.
+# AeneaBot
 
-We use Python 3.4 minimum, don't try to use lesser versions. 
+Simple Telegram Bot which can do many tasks
