@@ -82,6 +82,7 @@ def tiempo(bot, update, args):
             bot.sendMessage(update.message.chat_id, text='¿De dónde?')
             return
         else:
+            # screw it!
             lugar = ' '.join(args)
             dataargs = lugar.lower()
 
@@ -95,8 +96,14 @@ def tiempo(bot, update, args):
         map_params = {'key': apikey, 'location': str(dataargs), 'maxResults': 1}
         # Get LAT/LON for a location
         try:
+            # WARNING: Note that MapRequestApi doesn't test if location exists. Instead of this it does
+            # some kind of heuristic-holistic matching with some kind of last-resort database.
+            # This means that, as if you pass random characters as input, you always get a valid response.
+            # Weirdo...
             mapgeo = requests.get(map_url, params=map_params)
             json_mapgeo = mapgeo.json()
+            # This will be used to know from where the results are (F.E. locality names that exists in different cities
+            mapgeo_location = json_mapgeo["results"][0]["locations"][0]["adminArea3"]
             mapgeo_lat = json_mapgeo["results"][0]["locations"][0]["latLng"]["lat"]
             mapgeo_lon = json_mapgeo["results"][0]["locations"][0]["latLng"]["lng"]
             lat = mapgeo_lat
@@ -148,9 +155,9 @@ def tiempo(bot, update, args):
 
             # Now compose full message
             if data is 1:
-                mensaje = "Hoy en " + lugar + mensaje_lluvia + "," + mensaje_cloud + "," + mensaje_temp
+                mensaje = "Hoy en " + lugar + ", " + mapgeo_location + mensaje_lluvia + "," + mensaje_cloud + "," + mensaje_temp
             else:
-                mensaje = "Mañana en " + lugar + mensaje_lluvia + "," + mensaje_cloud + "," + mensaje_temp
+                mensaje = "Mañana en " + lugar + ", " + mapgeo_location + mensaje_lluvia + "," + mensaje_cloud + "," + mensaje_temp
 
             # Vomit the response
             bot.sendMessage(update.message.chat_id, text=mensaje)
