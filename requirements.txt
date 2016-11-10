@@ -6,3 +6,5 @@ requests==2.10.0
 urllib3==1.16
 wikipedia
 gitpython
+pyasn1
+pyasn1_modules
