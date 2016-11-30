@@ -204,7 +204,7 @@ def habla(bot, update, args):
         talkstring = ' '.join(args)
         print(talkstring)
         tmpfile = "/tmp/aenea-speech.ogg"
-        # TODO: Error controls, Audio format suitable for android client, perhaps voice tunning.
+        # TODO: Error controls, Check if espeak and vorbis-tools (oggenc) are installed, Audio format suitable for android client, perhaps voice tunning.
         subprocess.call("espeak -v {0}+f4 \"{1}\" --stdout | oggenc -o {2} -".format(language, talkstring, tmpfile), shell=True)
         bot.sendVoice(update.message.chat_id, voice=open(tmpfile, 'rb'))
         os.remove(tmpfile)
