@@ -8,3 +8,4 @@ wikipedia
 gitpython
 pyasn1
 pyasn1_modules
+# Need espeak and vorbis-tools(oggenc) for speech

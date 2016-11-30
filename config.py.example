@@ -5,5 +5,6 @@ config = {
     "BOTNAME": "Name of your bot",
     "AUTHUSER": "Authorized username, you know",
     "LANG": "Language user for APIs",
-    "MAPREQUEST": "MapRequestAPI API key"
+    "MAPREQUEST": "MapRequestAPI API key",
+    "USERAGENT": "User Agent for your bot"
 }

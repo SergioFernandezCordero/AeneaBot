@@ -21,6 +21,7 @@ import pyasn1_modules.rfc2459 as x509
 
 CONFIG_TIMEDELTA_RE = re.compile(r"([0-9]+(\.[0-9]*)?)\s*([a-zA-Z]+)")
 
+
 def parse_certificate(fileobj):
     if isinstance(fileobj, str):
         fileobj = open(fileobj, "r")
@@ -41,12 +42,14 @@ def parse_certificate(fileobj):
         if owns:
             fileobj.close()
 
+
 def parse_date(date):
     date = str(date)
     if isinstance(date, GeneralizedTime):
         return datetime.strptime(date, "%Y%m%d%H%M%SZ")
     else:
         return datetime.strptime(date, "%y%m%d%H%M%SZ")
+
 
 def extract_validity(cert):
     tbs = cert.getComponentByName("tbsCertificate")
@@ -57,8 +60,10 @@ def extract_validity(cert):
 
     return parse_date(not_before), parse_date(not_after)
 
+
 def get_ttl(not_after):
     return not_after - datetime.utcnow()
+
 
 def parse_config_timedelta(s):
     parsed = CONFIG_TIMEDELTA_RE.match(s)
@@ -90,12 +95,14 @@ def parse_config_timedelta(s):
     return timedelta(days=count*days_factor,
                      seconds=count*seconds_factor)
 
+
 def format_fingerprint(fingerprint):
     octets = int(len(fingerprint)/2)
     formatted = ""
     for octet_idx in range(octets):
         formatted += fingerprint[octet_idx*2:(octet_idx+1)*2] + ":"
     return formatted[:-1].upper()
+
 
 def construct_warning_mail(responsible, warnlist, fromaddr, subjectfmt):
     mail = MIMEMultipart()
@@ -140,6 +147,7 @@ sincerely yours,
 
     return mail
 
+
 def log_error(msg_base, exc, logging=logging):
     if not hasattr(exc, "smtp_error"):
         logging.error("%s: %s", msg_base, exc)
@@ -149,10 +157,12 @@ def log_error(msg_base, exc, logging=logging):
         except UnicodeDecodeError as err:
             logging.error("%s: (decode of error message failed) %s", msg_base, exc.smtp_error)
 
+
 def log_smtp_error(exc, logging=logging):
     log_error("Could not connect to SMTP",
               exc,
               logging=logging)
+
 
 def log_send_error(exc, logging=logging):
     log_error("While sending mail",

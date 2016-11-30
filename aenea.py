@@ -10,6 +10,8 @@ import sys
 
 import requests
 import wikipedia
+import subprocess
+import os
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, RegexHandler, ConversationHandler
 from telegram import ReplyKeyboardMarkup
 import git
@@ -186,6 +188,29 @@ def info(bot, update, args):
             bot.sendMessage(update.message.chat_id, text="Sin resultados para " + searchstring)
 
 
+def buscar(bot, update, args):
+    try:
+        bot.sendPhoto(update.message.chat_id, photo='https://www.fernandezcordero.net/imagenes/api_buscador.jpg')
+    except:
+        bot.sendMessage(update.message.chat_id, text="Ni la imagen te puedo mostrar...")
+
+
+# Talk capabilities proof of concept
+# (Here I can say PoC, not at work)
+def habla(bot, update, args):
+    authorization = auth(bot, update)
+    if authorization is 0:
+        language = config.get('LANG')
+        talkstring = ' '.join(args)
+        print(talkstring)
+        tmpfile = "/tmp/aenea-speech.ogg"
+        # TODO: Error controls, Audio format suitable for android client, perhaps voice tunning.
+        subprocess.call("espeak -v {0}+f4 \"{1}\" --stdout | oggenc -o {2} -".format(language, talkstring, tmpfile), shell=True)
+        bot.sendVoice(update.message.chat_id, voice=open(tmpfile, 'rb'))
+        os.remove(tmpfile)
+
+
+
 def main():
     token = config.get('TOKEN')
 
@@ -201,6 +226,8 @@ def main():
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("tiempo", tiempo, pass_args=True))
     dispatcher.add_handler(CommandHandler("info", info, pass_args=True))
+    dispatcher.add_handler(CommandHandler("buscar", buscar, pass_args=True))
+    dispatcher.add_handler(CommandHandler("habla", habla, pass_args=True))
 
     # log all errors
     dispatcher.add_error_handler(error)
