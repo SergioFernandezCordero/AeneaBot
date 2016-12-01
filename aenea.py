@@ -70,18 +70,41 @@ def help(bot, update):
         bot.sendMessage(update.message.chat_id, text=mensaje)
 
 
+# Talk capabilities proof of concept
+# (Here I can say PoC, not at work)
+def habla(args):
+    if isinstance(args, str):
+        talkstring = args
+    else:
+        return 1
+    global tmpfile
+    tmpfile = "/tmp/aenea-speech.ogg"
+    # espeak options
+    espeed = "190"  # speech speed in words per minute (Look, it's a string!)
+    language = config.get('LANG')  # Languaje by default in config.py
+    try:
+        # TODO: Error controls, Check if espeak and vorbis-tools (oggenc) are installed, Audio format suitable for android client, perhaps voice tunning.
+        subprocess.call("espeak -v {0}+f3 \"{1}\" -s {2} --stdout | oggenc -o {3} -".format(language, talkstring, espeed, tmpfile), shell=True)
+        return tmpfile
+    except:
+        return 1
+
+#         bot.sendVoice(update.message.chat_id, voice=open(tmpfile, 'rb'))
+
+
 def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
 
 
 # This is were the fun begins
 def tiempo(bot, update, args):
+    global mensaje
     authorization = auth(bot, update)
     if authorization is 0:
         # Check input
         if not args:
             # No input, no way
-            bot.sendMessage(update.message.chat_id, text='¿De dónde?')
+            mensaje = "¿De dónde?"
             return
         else:
             # screw it!
@@ -91,7 +114,7 @@ def tiempo(bot, update, args):
         # Let's do some mapgeo magic...
         apikey = config.get('MAPREQUEST')
         if not apikey:
-            bot.sendMessage(update.message.chat_id, text='No tengo clave de API para geolocalizacion')
+            mensaje = "No tengo clave de API para geolocalizacion"
             return
         # Build URL as usual
         map_url = 'http://www.mapquestapi.com/geocoding/v1/address'
@@ -112,17 +135,18 @@ def tiempo(bot, update, args):
             lon = mapgeo_lon
         except ConnectionError:
             # Something went wrong?
-            bot.sendMessage(update.message.chat_id, text="Servicio de geolocalización no disponible")
+            mensaje = "Servicio de geolocalización no disponible"
             return
 
         # Building URL to query the service
-        url_service = 'http://202.127.24.18/bin/astro.php'
+        url_service = 'http://202.127.24.18/bin/astro.php'  # Should this go outta here?
         url_params = {'lon': str(lon), 'lat': str(lat), 'output': "json", 'tzshift': "0", 'unit': "metric", 'ac': "0"}
 
         # Query service
-        timer7 = requests.get(url_service, params=url_params)
-        if timer7.status_code > 299:
-            bot.sendMessage(update.message.chat_id, text='¡No puedo recuperar la información meteorológica!')
+        try:
+            timer7 = requests.get(url_service, params=url_params)
+        except requests.exceptions.RequestException:
+            mensaje = "¡No puedo recuperar la información meteorológica!"
             return
 
         json_timer7 = timer7.json()
@@ -157,17 +181,24 @@ def tiempo(bot, update, args):
 
             # Now compose full message
             if data is 1:
-                mensaje = "Hoy en " + lugar + ", " + mapgeo_location + mensaje_lluvia + "," + mensaje_cloud + "," + mensaje_temp
+                mensaje = "Hoy en " + lugar + ", " + mensaje_lluvia + "," + mensaje_cloud + "," + mensaje_temp
             else:
-                mensaje = "Mañana en " + lugar + ", " + mapgeo_location + mensaje_lluvia + "," + mensaje_cloud + "," + mensaje_temp
+                mensaje = "Mañana en " + lugar + ", " + mensaje_lluvia + "," + mensaje_cloud + "," + mensaje_temp
 
-            # Vomit the response
+        # Vomit the response
+        if talker == "Yes":
+            habla(mensaje)
+            bot.sendVoice(update.message.chat_id, voice=open(habla(mensaje), 'rb'))
+            os.remove(tmpfile)
+        else:
             bot.sendMessage(update.message.chat_id, text=mensaje)
     return
 
 
 # Simple job for wikipedia info searches
+# Does not support "habla" FTW
 def info(bot, update, args):
+    global mensaje
     authorization = auth(bot, update)
     if authorization is 0:
         language = config.get('LANG')
@@ -177,15 +208,15 @@ def info(bot, update, args):
             searchresult = wikipedia.page(searchstring)
             search_content = searchresult.content
             search_url = searchresult.url
-            bot.sendMessage(update.message.chat_id, text=search_url)
-        except ConnectionError:
-            bot.sendMessage(update.message.chat_id, text="Wikipedia no está disponible")
+            mensaje = search_url
+        except requests.exceptions.RequestException:
+            mensaje = "Wikipedia no está disponible"
         except wikipedia.exceptions.DisambiguationError as disambiguation:
             disambiguation_options = disambiguation.options[0:-2]
-            disambiguation_string = "Se han encontrado resultados para " + ', '.join(disambiguation_options) + ". Por favor, especifique"
-            bot.sendMessage(update.message.chat_id, text=disambiguation_string)
+            mensaje = "Se han encontrado varios resultados. Sea más específico"
         except wikipedia.exceptions.PageError as wikierror:
-            bot.sendMessage(update.message.chat_id, text="Sin resultados para " + searchstring)
+            mensaje = "Sin resultados para " + searchstring
+        bot.sendMessage(update.message.chat_id, text=mensaje)
 
 
 def buscar(bot, update, args):
@@ -193,24 +224,6 @@ def buscar(bot, update, args):
         bot.sendPhoto(update.message.chat_id, photo='https://www.fernandezcordero.net/imagenes/api_buscador.jpg')
     except:
         bot.sendMessage(update.message.chat_id, text="Ni la imagen te puedo mostrar...")
-
-
-# Talk capabilities proof of concept
-# (Here I can say PoC, not at work)
-def habla(bot, update, args):
-    talkstring = ' '.join(args)
-    tmpfile = "/tmp/aenea-speech.ogg"
-    # espeak options
-    e_speed = "190"  # speech speed in words per minute (Look, it's a string!)
-    language = config.get('LANG')  # Languaje by default in config.py
-    try:
-        # TODO: Error controls, Check if espeak and vorbis-tools (oggenc) are installed, Audio format suitable for android client, perhaps voice tunning.
-        subprocess.call("espeak -v {0}+f5 \"{1}\" -s {2}--stdout | oggenc -o {3} -".format(language, talkstring, e_speed, tmpfile), shell=True)
-        bot.sendVoice(update.message.chat_id, voice=open(tmpfile, 'rb'))
-    except:
-        bot.sendMessage(update.message.chat_id, text="Problema en la generacion de audio")
-    os.remove(tmpfile)
-
 
 
 def main():
@@ -229,7 +242,6 @@ def main():
     dispatcher.add_handler(CommandHandler("tiempo", tiempo, pass_args=True))
     dispatcher.add_handler(CommandHandler("info", info, pass_args=True))
     dispatcher.add_handler(CommandHandler("buscar", buscar, pass_args=True))
-    dispatcher.add_handler(CommandHandler("habla", habla, pass_args=True))
 
     # log all errors
     dispatcher.add_error_handler(error)
