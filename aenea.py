@@ -198,16 +198,18 @@ def buscar(bot, update, args):
 # Talk capabilities proof of concept
 # (Here I can say PoC, not at work)
 def habla(bot, update, args):
-    authorization = auth(bot, update)
-    if authorization is 0:
-        language = config.get('LANG')
-        talkstring = ' '.join(args)
-        print(talkstring)
-        tmpfile = "/tmp/aenea-speech.ogg"
+    talkstring = ' '.join(args)
+    tmpfile = "/tmp/aenea-speech.ogg"
+    # espeak options
+    e_speed = "190"  # speech speed in words per minute (Look, it's a string!)
+    language = config.get('LANG')  # Languaje by default in config.py
+    try:
         # TODO: Error controls, Check if espeak and vorbis-tools (oggenc) are installed, Audio format suitable for android client, perhaps voice tunning.
-        subprocess.call("espeak -v {0}+f4 \"{1}\" --stdout | oggenc -o {2} -".format(language, talkstring, tmpfile), shell=True)
+        subprocess.call("espeak -v {0}+f5 \"{1}\" -s {2}--stdout | oggenc -o {3} -".format(language, talkstring, e_speed, tmpfile), shell=True)
         bot.sendVoice(update.message.chat_id, voice=open(tmpfile, 'rb'))
-        os.remove(tmpfile)
+    except:
+        bot.sendMessage(update.message.chat_id, text="Problema en la generacion de audio")
+    os.remove(tmpfile)
 
 
 
@@ -243,4 +245,18 @@ def main():
 
 if __name__ == "__main__":
     print("Arrancando " + botname + "...")
+    if config.get('TALK'):
+        talker = config.get('TALK')
+        if talker is not "Yes" or not "No":
+            talker = "No"
+            print("Habla desactivada")
+        else:
+            if talker == "Yes":
+                print("Habla activada")
+            if talker == "No":
+                print("Habla desactivada")
+    else:
+        talker = "No"
+        print("Habla desactivada por defecto")
+
     main()

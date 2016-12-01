@@ -6,5 +6,6 @@ config = {
     "AUTHUSER": "Authorized username, you know",
     "LANG": "Language user for APIs",
     "MAPREQUEST": "MapRequestAPI API key",
-    "USERAGENT": "User Agent for your bot"
+    "USERAGENT": "User Agent for your bot",
+    "TALK": "Indicates if talk functionality is activated or not. (Yes or No)"
 }
