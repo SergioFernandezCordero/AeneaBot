@@ -77,19 +77,39 @@ def habla(args):
         talkstring = args
     else:
         return 1
+    global tmpnum
+    tmpnum = 1
     global tmpfile
-    tmpfile = "/tmp/aenea-speech.ogg"
+    tmpfile = "/tmp/aenea-speech-" + str(tmpnum) + ".ogg"
+
+    # Let's check if there are other temporary files
+    while os.path.isfile(tmpfile):
+        tmpnum += 1
+        tmpfile = "/tmp/aenea-speech-" + str(tmpnum) + ".ogg"
+
     # espeak options
     espeed = "190"  # speech speed in words per minute (Look, it's a string!)
     language = config.get('LANG')  # Languaje by default in config.py
+
+    # Let's check if dependencies are correctly installed
+    unixpath = os.environ['PATH']
+    paths = unixpath.split(":")
+    binarium = "espeak"
+    failure = 0
+    # TODO: Check temporary files generation and removal
+    for i in paths:
+        path = i + "/" + binarium
+        espeakstatus = os.path.exists(path)
+        if not espeakstatus:
+            failure += 1
+    if failure >= len(paths):
+        print("No se ha encontrado espeak en el PATH")
+        return 1
     try:
-        # TODO: Error controls, Check if espeak and vorbis-tools (oggenc) are installed, Audio format suitable for android client, perhaps voice tunning.
         subprocess.call("espeak -v {0}+f3 \"{1}\" -s {2} --stdout | oggenc -o {3} -".format(language, talkstring, espeed, tmpfile), shell=True)
         return tmpfile
-    except:
+    except OSError:
         return 1
-
-#         bot.sendVoice(update.message.chat_id, voice=open(tmpfile, 'rb'))
 
 
 def error(bot, update, error):
@@ -105,6 +125,7 @@ def tiempo(bot, update, args):
         if not args:
             # No input, no way
             mensaje = "¿De dónde?"
+            bot.sendMessage(update.message.chat_id, text=mensaje)
             return
         else:
             # screw it!
@@ -183,12 +204,23 @@ def tiempo(bot, update, args):
             if data is 1:
                 mensaje = "Hoy en " + lugar + ", " + mensaje_lluvia + "," + mensaje_cloud + "," + mensaje_temp
             else:
-                mensaje = "Mañana en " + lugar + ", " + mensaje_lluvia + "," + mensaje_cloud + "," + mensaje_temp
+                mensaje1 = "Mañana en " + lugar + ", " + mensaje_lluvia + "," + mensaje_cloud + "," + mensaje_temp
 
         # Vomit the response
         if talker == "Yes":
             habla(mensaje)
             bot.sendVoice(update.message.chat_id, voice=open(habla(mensaje), 'rb'))
+            print(tmpfile)
+            try:
+                os.remove(tmpfile)
+            except FileExistsError:
+                print("Problema borrando " + tmpfile)
+            habla(mensaje1)
+            bot.sendVoice(update.message.chat_id, voice=open(habla(mensaje1), 'rb'))
+            try:
+                os.remove(tmpfile)
+            except FileExistsError:
+                print("Problema borrando " + tmpfile)
             os.remove(tmpfile)
         else:
             bot.sendMessage(update.message.chat_id, text=mensaje)
@@ -222,7 +254,7 @@ def info(bot, update, args):
 def buscar(bot, update, args):
     try:
         bot.sendPhoto(update.message.chat_id, photo='https://www.fernandezcordero.net/imagenes/api_buscador.jpg')
-    except:
+    except ConnectionError:
         bot.sendMessage(update.message.chat_id, text="Ni la imagen te puedo mostrar...")
 
 
