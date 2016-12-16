@@ -82,11 +82,6 @@ def habla(args):
     global tmpfile
     tmpfile = "/tmp/aenea-speech-" + str(tmpnum) + ".ogg"
 
-    # Let's check if there are other temporary files
-    while os.path.isfile(tmpfile):
-        tmpnum += 1
-        tmpfile = "/tmp/aenea-speech-" + str(tmpnum) + ".ogg"
-
     # espeak options
     espeed = "190"  # speech speed in words per minute (Look, it's a string!)
     language = config.get('LANG')  # Languaje by default in config.py
@@ -97,7 +92,12 @@ def habla(args):
     binarium = "espeak"
     failure = 0
     # TODO: Check temporary files generation and removal
+    # Check if espeak installed
     for i in paths:
+        # Let's check if there are other temporary files and generate new ones
+        while os.path.isfile(tmpfile):
+            tmpnum += 1
+            tmpfile = "/tmp/aenea-speech-" + str(tmpnum) + ".ogg"
         path = i + "/" + binarium
         espeakstatus = os.path.exists(path)
         if not espeakstatus:
@@ -210,18 +210,17 @@ def tiempo(bot, update, args):
         if talker == "Yes":
             habla(mensaje)
             bot.sendVoice(update.message.chat_id, voice=open(habla(mensaje), 'rb'))
-            print(tmpfile)
-            try:
-                os.remove(tmpfile)
-            except FileExistsError:
-                print("Problema borrando " + tmpfile)
             habla(mensaje1)
             bot.sendVoice(update.message.chat_id, voice=open(habla(mensaje1), 'rb'))
+            # Not the best way, but should work without concurrency
             try:
-                os.remove(tmpfile)
-            except FileExistsError:
-                print("Problema borrando " + tmpfile)
-            os.remove(tmpfile)
+                dir = "/tmp"
+                files = os.listdir(dir)
+                for file in files:
+                    if file.endswith(".ogg"):
+                        os.remove(os.path.join(dir,file))
+            except OSError as log:
+                print("Problema borrando el fichero de audio: " + log)
         else:
             bot.sendMessage(update.message.chat_id, text=mensaje)
     return
