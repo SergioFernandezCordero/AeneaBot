@@ -12,6 +12,7 @@ import requests
 import wikipedia
 import subprocess
 import os
+import feedparser
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, RegexHandler, ConversationHandler
 from telegram import ReplyKeyboardMarkup
 import git
@@ -257,6 +258,25 @@ def buscar(bot, update, args):
         bot.sendMessage(update.message.chat_id, text="Ni la imagen te puedo mostrar...")
 
 
+def receta(bot, update, args):
+    authorization = auth(bot, update)
+    receta_url = "http://www.lacocinadelechuza.com/feeds/posts/default"  # My favourite web for cooking recipes RSS!
+    if authorization is 0:
+        # Check input
+        if not args:
+            # No input, no way
+            receta_mensaje = "Necesito al menos un ingrediente"
+            bot.sendMessage(update.message.chat_id, text=receta_mensaje)
+            return
+        else:
+            # screw it!
+            receta = ' '.join(args)
+            recetaargs = receta.lower()
+            feed = feedparser.parse(receta_url)
+            print(len(feed['entries']))
+            print(feed.entries[0]['link'])
+
+
 def main():
     token = config.get('TOKEN')
 
@@ -273,6 +293,7 @@ def main():
     dispatcher.add_handler(CommandHandler("tiempo", tiempo, pass_args=True))
     dispatcher.add_handler(CommandHandler("info", info, pass_args=True))
     dispatcher.add_handler(CommandHandler("buscar", buscar, pass_args=True))
+    dispatcher.add_handler(CommandHandler("receta", receta, pass_args=True))
 
     # log all errors
     dispatcher.add_error_handler(error)

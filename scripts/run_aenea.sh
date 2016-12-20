@@ -1,18 +1,26 @@
 #! /bin/sh
 #
-# Start and stop Aenea bot
+# Sample script to Start and stop Aenea bot
 # Sergio Fernandez Cordero - sergio@fernandezcordero.net
 # 2016
 #
 
-AENEA_HOME=/srv/aenea/bot/aenea
-AENEA_BIN=aenea.py
+AENEA_HOME=/srv/aenea/bot/aenea # PATH where aeneabot is deployed
+AENEA_BIN=aenea.py # aeneabot binary. Shouldn't be modified
+AENEA_USER=aenea # username which runs aenea
+AENEA_VENV=/srv/aenea/bin/activate # Full path to vvirtualenv on user aenea which will be used. Comment if not used
+
+export AENEA_HOME AENEA_BIN AENEA_USER AENEA_VENV
 
 case "$1" in
     start)
         if [ -d ${AENEA_HOME} ] && [ -f ${AENEA_HOME}/${AENEA_BIN} ]; then
                 echo -n "Running Aenea     "
-                python3 ${AENEA_HOME}/${AENEA_BIN} > /dev/null 2>&1 &
+		if [ -z ${AENEA_VENV} ]; then
+	                su - ${AENEA_USER} -c "source $AENEA_VENV && python3 ${AENEA_HOME}/${AENEA_BIN} > debug.log 2>&1 &"
+		else
+			su - ${AENEA_USER} -c "python3 ${AENEA_HOME}/${AENEA_BIN} > debug.log 2>&1 &"
+		fi
                 if [ $? -eq 0 ]; then
                     echo "OK"
                     exit 0
@@ -20,7 +28,7 @@ case "$1" in
                     echo "FAILED"
                     exit 1
                 fi
-                else
+        else
                 echo "ERROR: Aenea directory or binary not found"
                 exit 1
         fi
