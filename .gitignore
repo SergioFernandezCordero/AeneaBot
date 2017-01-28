@@ -9,3 +9,4 @@ share/
 pip-selfcheck.json
 config.py
 .idea/*
+__pycache__/
