@@ -17,6 +17,7 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Regex
 from telegram import ReplyKeyboardMarkup
 import git
 
+sys.path.append('/opt/aenea/config')
 from config import config
 
 # Constants
@@ -69,48 +70,6 @@ def help(bot, update):
     if authorization is 0:
         mensaje = "Soy " + botname + ", bot de servicio. Aún no tengo funciones definidas"
         bot.sendMessage(update.message.chat_id, text=mensaje)
-
-
-# Talk capabilities proof of concept
-# (Here I can say PoC, not at work)
-def habla(args):
-    if isinstance(args, str):
-        talkstring = args
-    else:
-        return 1
-    global tmpnum
-    tmpnum = 1
-    global tmpfile
-    tmpfile = "/tmp/aenea-speech-" + str(tmpnum) + ".ogg"
-
-    # espeak options
-    espeed = "190"  # speech speed in words per minute (Look, it's a string!)
-    language = config.get('LANG')  # Languaje by default in config.py
-
-    # Let's check if dependencies are correctly installed
-    unixpath = os.environ['PATH']
-    paths = unixpath.split(":")
-    binarium = "espeak"
-    failure = 0
-    # TODO: Check temporary files generation and removal
-    # Check if espeak installed
-    for i in paths:
-        # Let's check if there are other temporary files and generate new ones
-        while os.path.isfile(tmpfile):
-            tmpnum += 1
-            tmpfile = "/tmp/aenea-speech-" + str(tmpnum) + ".ogg"
-        path = i + "/" + binarium
-        espeakstatus = os.path.exists(path)
-        if not espeakstatus:
-            failure += 1
-    if failure >= len(paths):
-        print("No se ha encontrado espeak en el PATH")
-        return 1
-    try:
-        subprocess.call("espeak -v {0}+f3 \"{1}\" -s {2} --stdout | oggenc -o {3} -".format(language, talkstring, espeed, tmpfile), shell=True)
-        return tmpfile
-    except OSError:
-        return 1
 
 
 def error(bot, update, error):
@@ -208,22 +167,7 @@ def tiempo(bot, update, args):
                 mensaje1 = "Mañana en " + lugar + ", " + mensaje_lluvia + "," + mensaje_cloud + "," + mensaje_temp
 
         # Vomit the response
-        if talker == "Yes":
-            habla(mensaje)
-            bot.sendVoice(update.message.chat_id, voice=open(habla(mensaje), 'rb'))
-            habla(mensaje1)
-            bot.sendVoice(update.message.chat_id, voice=open(habla(mensaje1), 'rb'))
-            # Not the best way, but should work without concurrency
-            try:
-                dir = "/tmp"
-                files = os.listdir(dir)
-                for file in files:
-                    if file.endswith(".ogg"):
-                        os.remove(os.path.join(dir,file))
-            except OSError as log:
-                print("Problema borrando el fichero de audio: " + log)
-        else:
-            bot.sendMessage(update.message.chat_id, text=mensaje)
+        bot.sendMessage(update.message.chat_id, text=mensaje)
     return
 
 
@@ -277,6 +221,15 @@ def receta(bot, update, args):
             print(feed.entries[0]['link'])
 
 
+def check(bot, update):
+    '''
+        Silly function to check if it's online
+    '''
+    authorization = auth(bot, update)
+    if authorization is 0:
+        bot.sendMessage(update.message.chat_id, text="imok")
+
+
 def main():
     token = config.get('TOKEN')
 
@@ -294,6 +247,7 @@ def main():
     dispatcher.add_handler(CommandHandler("info", info, pass_args=True))
     dispatcher.add_handler(CommandHandler("buscar", buscar, pass_args=True))
     dispatcher.add_handler(CommandHandler("receta", receta, pass_args=True))
+    dispatcher.add_handler(CommandHandler("check", check, pass_args=False))
 
     # log all errors
     dispatcher.add_error_handler(error)
@@ -306,21 +260,6 @@ def main():
     # start_polling() is non-blocking and will stop the bot gracefully.
     updater.idle()
 
-
 if __name__ == "__main__":
     print("Arrancando " + botname + "...")
-    if config.get('TALK'):
-        talker = config.get('TALK')
-        if talker is not "Yes" or not "No":
-            talker = "No"
-            print("Habla desactivada")
-        else:
-            if talker == "Yes":
-                print("Habla activada")
-            if talker == "No":
-                print("Habla desactivada")
-    else:
-        talker = "No"
-        print("Habla desactivada por defecto")
-
     main()

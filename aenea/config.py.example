@@ -1,11 +1,11 @@
-# Simple configuration example
+# Ejemplo de configuración
 
 config = {
-    "TOKEN": "Your telegram bot token goes here",
-    "BOTNAME": "Name of your bot",
-    "AUTHUSER": "Authorized username, you know",
-    "LANG": "Language user for APIs",
+    "TOKEN": "Telegram bot Token",
+    "BOTNAME": "El nombre de tu bot",
+    "AUTHUSER": "Usuario autorizado al que el bot contestará (el tuyo)",
+    "MAIL": "Tu email, ya servirá para algo",
+    "LANG": "Idioma para las API",
     "MAPREQUEST": "MapRequestAPI API key",
-    "USERAGENT": "User Agent for your bot",
-    "TALK": "Indicates if talk functionality is activated or not. (Yes or No)"
+    "USERAGENT": "UserAgent para tu bot",
 }
