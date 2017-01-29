@@ -7,6 +7,7 @@
 
 import logging
 import sys
+import random
 
 import requests
 import wikipedia
@@ -172,9 +173,10 @@ def tiempo(bot, update, args):
     return
 
 
-# Simple job for wikipedia info searches
-# Does not support "habla" FTW
 def info(bot, update, args):
+    '''
+        Simple job for wikipedia info searches
+    '''
     global mensaje
     authorization = auth(bot, update)
     if authorization is 0:
@@ -203,32 +205,23 @@ def buscar(bot, update, args):
         bot.sendMessage(update.message.chat_id, text="Ni la imagen te puedo mostrar...")
 
 
-def receta(bot, update, args):
-    authorization = auth(bot, update)
-    receta_url = "http://www.lacocinadelechuza.com/feeds/posts/default"  # My favourite web for cooking recipes RSS!
-    if authorization is 0:
-        # Check input
-        if not args:
-            # No input, no way
-            receta_mensaje = "Necesito al menos un ingrediente"
-            bot.sendMessage(update.message.chat_id, text=receta_mensaje)
-            return
-        else:
-            # screw it!
-            receta = ' '.join(args)
-            recetaargs = receta.lower()
-            feed = feedparser.parse(receta_url)
-            print(len(feed['entries']))
-            print(feed.entries[0]['link'])
-
-
-def check(bot, update):
+def ruok(bot, update):
     '''
         Silly function to check if it's online
     '''
     authorization = auth(bot, update)
     if authorization is 0:
         bot.sendMessage(update.message.chat_id, text="imok")
+
+
+def dado(bot, update):
+    '''
+        Lanza un dado de 6 caras
+    '''
+    authorization = auth(bot, update)
+    if authorization is 0:
+        dadillo = random.randrange(1, 6)
+        bot.sendMessage(update.message.chat_id, text=dadillo)
 
 
 def main():
@@ -247,8 +240,8 @@ def main():
     dispatcher.add_handler(CommandHandler("tiempo", tiempo, pass_args=True))
     dispatcher.add_handler(CommandHandler("info", info, pass_args=True))
     dispatcher.add_handler(CommandHandler("buscar", buscar, pass_args=True))
-    dispatcher.add_handler(CommandHandler("receta", receta, pass_args=True))
-    dispatcher.add_handler(CommandHandler("check", check, pass_args=False))
+    dispatcher.add_handler(CommandHandler("dado", dado, pass_args=False))
+    dispatcher.add_handler(CommandHandler("ruok", ruok, pass_args=False))
 
     # log all errors
     dispatcher.add_error_handler(error)
@@ -263,4 +256,4 @@ def main():
 
 if __name__ == "__main__":
     print("Arrancando " + botname + "...")
-    main()
+    main() | print("Error arrancando " + botname)
