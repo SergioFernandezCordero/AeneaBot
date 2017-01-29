@@ -168,6 +168,7 @@ def tiempo(bot, update, args):
 
         # Vomit the response
         bot.sendMessage(update.message.chat_id, text=mensaje)
+        bot.sendMessage(update.message.chat_id, text=mensaje1)
     return
 
 
