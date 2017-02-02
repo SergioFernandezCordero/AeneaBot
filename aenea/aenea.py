@@ -159,7 +159,10 @@ def tiempo(bot, update, args):
                 mensaje_cloud = " no habrá nubes"
 
             # Message about temperature
-            mensaje_temp = " y habrá una temperatura de " + str(timer7_temp) + " grados."
+            if timer7_temp == 1:
+                mensaje_temp = " y habrá una temperatura de " + str(timer7_temp) + " grado."
+            else:
+                mensaje_temp = " y habrá una temperatura de " + str(timer7_temp) + " grados."
 
             # Now compose full message
             if data is 1:
