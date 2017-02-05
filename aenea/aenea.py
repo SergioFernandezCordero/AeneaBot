@@ -201,6 +201,23 @@ def info(bot, update, args):
         bot.sendMessage(update.message.chat_id, text=mensaje)
 
 
+def jerigonzo(bot, update, args):
+    '''
+    Traduce un texto a jerigonzo
+    Ver: https://es.wikipedia.org/wiki/Jerigonza
+    '''
+    authorization = auth(bot, update)
+    if authorization is 0:
+        if not args:
+            bot.sendMessage(update.message.chat_id, text="[cries in jeriogonzo]")
+        else:
+            translatestring = ' '.join(args).lower()
+            vocales = ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U']
+            for vocal in vocales:
+                translatestring = translatestring.replace(vocal, vocal + "p" + vocal)
+            bot.sendMessage(update.message.chat_id, text="[JERIGONZO] - " + translatestring)
+
+
 def buscar(bot, update, args):
     try:
         bot.sendPhoto(update.message.chat_id, photo='https://www.fernandezcordero.net/imagenes/api_buscador.jpg')
@@ -231,17 +248,18 @@ def abogadochat(bot, update):
     '''
        Grosería inspirada en una broma del trabajo
     '''
-    msg = update.message.text.lower()
+    authorization = auth(bot, update)
+    if authorization is 0:
+        msg = update.message.text.lower()
+        if msg[-3:] == "ado" and "colgado" not in msg:
+            bot.sendMessage(update.message.chat_id, text="Como lo que tengo aquí colgado...")
+            bot.sendPhoto(update.message.chat_id, photo='https://www.fernandezcordero.net/imagenes/colgado.jpg')
+            bot.sendMessage(update.message.chat_id, text="Lo siento, me han programado así...")
 
-    if msg[-3:] == "ado" and "colgado" not in msg:
-        bot.sendMessage(update.message.chat_id, text="Como lo que tengo aquí colgado...")
-        bot.sendPhoto(update.message.chat_id, photo='https://www.fernandezcordero.net/imagenes/colgado.jpg')
-        bot.sendMessage(update.message.chat_id, text="Lo siento, me han programado así...")
-
-    if "colgado" in msg and "abogado" not in msg:
-        bot.sendMessage(update.message.chat_id, text="Como el abogado...")
-        bot.sendPhoto(update.message.chat_id, photo='https://www.fernandezcordero.net/imagenes/imean.jpg')
-        bot.sendMessage(update.message.chat_id, text="Lo siento, me han programado así...")
+        if "colgado" in msg and "abogado" not in msg:
+            bot.sendMessage(update.message.chat_id, text="Como el abogado...")
+            bot.sendPhoto(update.message.chat_id, photo='https://www.fernandezcordero.net/imagenes/imean.jpg')
+            bot.sendMessage(update.message.chat_id, text="Lo siento, me han programado así...")
 
 
 def main():
@@ -262,6 +280,7 @@ def main():
     dispatcher.add_handler(CommandHandler("buscar", buscar, pass_args=True))
     dispatcher.add_handler(CommandHandler("dado", dado, pass_args=False))
     dispatcher.add_handler(CommandHandler("ruok", ruok, pass_args=False))
+    dispatcher.add_handler(CommandHandler("jerigonzo", jerigonzo, pass_args=True))
 
     # on noncommand i.e message - echo the message on Telegram
     dispatcher.add_handler(MessageHandler([Filters.text], abogadochat))
