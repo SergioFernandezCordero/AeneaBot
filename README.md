@@ -38,4 +38,6 @@ Despues, crea la imagen docker y lánzala mapeando la ruta del fichero config.py
 
 Builds en: https://hub.docker.com/r/elautoestopista/aeneabot/
 
-Colaboraciones bienvenidas.
+Test Autobuild
+
+Colaboraciones bienvenidas. 
