@@ -244,6 +244,49 @@ def dado(bot, update):
         bot.sendMessage(update.message.chat_id, text=dadillo)
 
 
+def man(bot, update, args):
+    '''
+    Busca la pagina man del comando indicado
+    Permite especificar el sistema y distro en una amplia lista.
+    '''
+    authorization = auth(bot, update)
+    if authorization is 0:
+        # Comprueba solo dos argumentos
+        if 2 < len(args) or len(args) == 0:
+            message = "Uso de man: comando distro(opcional, por defecto Debian)"
+        else:
+            # Ponemos el comando en minusculas
+            command = args[0].lower()
+            if len(args) == 2 and args[1]:
+                # Apaño para facilitar la búsqueda:
+                if not args[1][0].isupper():
+                    # Si la primera es minúscula, capitalizamos
+                    distro = args[1].capitalize()
+                else:
+                    # Si no, asumimos que se ha escrito así a conciencia y pasamos literalmente
+                    distro = args[1]
+            else:
+                # Por defecto, si no hay segundo argumento
+                distro = "Debian"
+            # Construimos la URL con ls parametros
+            man_url = 'http://www.polarhome.com/service/man'
+            man_params = {'qf': command, 'af': 0, 'sf': 0, 'of': distro, 'tf': 0}
+            # ARRE!
+            try:
+                man_page = requests.get(man_url, params=man_params)
+            except requests.exceptions.RequestException as e:
+                message = "¡El servicio MAN no está disponible!"
+                print(e)
+            # Valoramos, construimos el mensaje chachipiruli
+            if "No man pages for" in man_page.text:
+                message = "No hay paginas man para " + command + " en el servidor " + distro + "."
+            else:
+                message = "Comando " + command + " para " + distro + "\n" + man_page.text[62:500] + \
+                          "\n Página completa en: \n" + man_page.url
+        # Habla por esa boca
+        bot.sendMessage(update.message.chat_id, text=message)
+
+
 def abogadochat(bot, update):
     '''
        Grosería inspirada en una broma del trabajo
@@ -281,6 +324,7 @@ def main():
     dispatcher.add_handler(CommandHandler("dado", dado, pass_args=False))
     dispatcher.add_handler(CommandHandler("ruok", ruok, pass_args=False))
     dispatcher.add_handler(CommandHandler("jerigonzo", jerigonzo, pass_args=True))
+    dispatcher.add_handler(CommandHandler("man", man, pass_args=True))
 
     # on noncommand i.e message - echo the message on Telegram
     dispatcher.add_handler(MessageHandler([Filters.text], abogadochat))

@@ -6,8 +6,18 @@ Basado en el proyecto [AstroBeerBot](https://github.com/resetreboot/astrobeerbot
 
 Implementado usando la magnífica librería [Python-Telegram-Bot](https://github.com/python-telegram-bot/python-telegram-bot)
 
-Genera un fichero config.py como el siguiente:
+####Comandos;
 
+- /ruok - Check de estado. Devuelve "imok" si correcto
+- /info - Busca en Wikipedia
+- /dado - lanza un dado de 6 caras
+- /tiempo - Previsión meteorológica de la localidad indicada
+- /buscar - Busca información en Internet
+- /man - Muestra la página "man" del comando especificado. Por defecto Debian si no se especifica otro.(Mas info [aquí](http://www.polarhome.com/service/man/))
+
+Además tiene otras funciones relacionadas con la conversación. Búscalas en el código.
+####¿Como empezar?
+Genera un fichero config.py como el siguiente:
 ```
 # Ejemplo de configuración
 config = {
