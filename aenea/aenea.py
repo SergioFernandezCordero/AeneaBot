@@ -12,7 +12,7 @@ import sys
 import requests
 import wikipedia
 
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, RegexHandler, ConversationHandler
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 sys.path.append('/opt/aenea/config')
 from config import CONFIG
@@ -46,8 +46,10 @@ logger = logging.getLogger(__name__)
 botname = CONFIG.get('BOTNAME')
 
 
-# Stupid auth function. dafuq
 def auth(bot, update):
+    """
+    Stupid auth function. dafuq
+    """
     user = update.message.from_user.username  # Received username
     authorized_user = CONFIG.get('AUTHUSER')  # Authorized username, you know...
     if user != authorized_user:
@@ -59,6 +61,9 @@ def auth(bot, update):
 
 
 def start(bot, update):
+    """
+    Runs the bot
+    """
     authorization = auth(bot, update)
     user = update.message.from_user.username
     global mensaje
@@ -76,11 +81,17 @@ def help(bot, update):
 
 
 def error(bot, update, error):
+    """
+    Logs execution errors
+    """
     logger.warn('Update "%s" caused error "%s"' % (update, error))
 
 
 # This is were the fun begins
 def tiempo(bot, update, args):
+    """
+    Prevision meteorológica para hoy y mañana
+    """
     global mensaje
     authorization = auth(bot, update)
     if authorization is 0:
@@ -177,9 +188,9 @@ def tiempo(bot, update, args):
 
 
 def info(bot, update, args):
-    '''
+    """
         Simple job for wikipedia info searches
-    '''
+    """
     global mensaje
     authorization = auth(bot, update)
     if authorization is 0:
@@ -201,10 +212,10 @@ def info(bot, update, args):
 
 
 def jerigonzo(bot, update, args):
-    '''
+    """
     Traduce un texto a jerigonzo
     Ver: https://es.wikipedia.org/wiki/Jerigonza
-    '''
+    """
     authorization = auth(bot, update)
     if authorization is 0:
         if not args:
@@ -218,6 +229,9 @@ def jerigonzo(bot, update, args):
 
 
 def buscar(bot, update):
+    """
+    Busca información en un buscador de internet
+    """
     try:
         bot.sendPhoto(update.message.chat_id, photo='https://www.fernandezcordero.net/imagenes/api_buscador.jpg')
     except ConnectionError:
@@ -225,18 +239,18 @@ def buscar(bot, update):
 
 
 def ruok(bot, update):
-    '''
+    """
         Silly function to check if it's online
-    '''
+    """
     authorization = auth(bot, update)
     if authorization is 0:
         bot.sendMessage(update.message.chat_id, text="imok")
 
 
 def dado(bot, update):
-    '''
+    """
         Lanza un dado de 6 caras
-    '''
+    """
     authorization = auth(bot, update)
     if authorization is 0:
         dadillo = random.randrange(1, 6)
@@ -244,10 +258,10 @@ def dado(bot, update):
 
 
 def man(bot, update, args):
-    '''
+    """
     Busca la pagina man del comando indicado
     Permite especificar el sistema y distro en una amplia lista.
-    '''
+    """
     authorization = auth(bot, update)
     if authorization is 0:
         # Comprueba solo dos argumentos
@@ -287,9 +301,9 @@ def man(bot, update, args):
 
 
 def abogadochat(bot, update):
-    '''
+    """
        Grosería inspirada en una broma del trabajo
-    '''
+    """
     authorization = auth(bot, update)
     if authorization is 0:
         msg = update.message.text.lower()
@@ -305,6 +319,9 @@ def abogadochat(bot, update):
 
 
 def main():
+    """
+    Lanza la lógica del programa
+    """
     token = CONFIG.get('TOKEN')
 
     if token is None:

@@ -1,6 +1,8 @@
-# Ejemplo de configuración
+"""
+Ejemplo de configuración. Ajusta los valores a tus necesidades
+"""
 
-config = {
+CONFIG = {
     "TOKEN": "Telegram bot Token",
     "BOTNAME": "El nombre de tu bot",
     "AUTHUSER": "Usuario autorizado al que el bot contestará (el tuyo)",
