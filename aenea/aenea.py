@@ -69,18 +69,22 @@ def start(bot, update):
         bot.sendMessage(update.message.chat_id, text=mensaje)
 
 
-def help(bot, update):
+def ayuda(bot, update):
+    """
+    Funcion de ayuda.
+
+    """
     authorization = auth(bot, update)
     if authorization is 0:
         mensaje = "Soy " + botname + ", bot de servicio. Aún no tengo funciones definidas"
         bot.sendMessage(update.message.chat_id, text=mensaje)
 
 
-def error(bot, update, error):
+def error(update, errors):
     """
     Logs execution errors
     """
-    logger.warn('Update "%s" caused error "%s"' % (update, error))
+    logger.warning('Update "%s" caused error "%s"' % (update, errors))
 
 
 # This is were the fun begins
@@ -198,7 +202,6 @@ def info(bot, update, args):
         except requests.exceptions.RequestException:
             mensaje = "Wikipedia no está disponible"
         except wikipedia.exceptions.DisambiguationError as disambiguation:
-            disambiguation_options = disambiguation.options[0:-2]
             mensaje = "Se han encontrado varios resultados. Sea más específico"
         except wikipedia.exceptions.PageError as wikierror:
             mensaje = wikierror + "para" + searchstring
@@ -327,7 +330,7 @@ def main():
 
     # on different commands - answer in Telegram
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("help", help))
+    dispatcher.add_handler(CommandHandler("help", ayuda))
     dispatcher.add_handler(CommandHandler("tiempo", tiempo, pass_args=True))
     dispatcher.add_handler(CommandHandler("info", info, pass_args=True))
     dispatcher.add_handler(CommandHandler("buscar", buscar, pass_args=True))
