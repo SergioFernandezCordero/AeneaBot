@@ -18,4 +18,4 @@ RUN chown -R aenea:aenea /opt/aenea
 RUN pip install -r /opt/aenea/requirements.txt
 # RUN
 USER aenea
-CMD if [ ! -f /opt/aenea/conf/config.py ];then python3 /opt/aenea/aenea.py; else echo "No config file. See README.md"; fi
+CMD if [ -f /opt/aenea/config/config.py ];then python3 /opt/aenea/aenea.py; else echo "No config file. See README.md"; fi
