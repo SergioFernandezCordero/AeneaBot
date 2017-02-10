@@ -5,8 +5,5 @@ python-telegram-bot==5.0.0
 requests==2.10.0
 urllib3==1.16
 wikipedia
-gitpython
 pyasn1
 pyasn1_modules
-# Need espeak and vorbis-tools(oggenc) for speech
-feedparser

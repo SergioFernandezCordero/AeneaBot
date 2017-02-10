@@ -1,25 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-#  Aenea - Service bot from ElAutoestopista
-#  Based on work "AstroobeerBot" from ResetReboot
-#
+"""
+Aenea - Service bot from ElAutoestopista
+Based on work "AstroobeerBot" from ResetReboot
+"""
 
 import logging
 import sys
-import random
 
 import requests
 import wikipedia
-import subprocess
-import os
-import feedparser
+
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, RegexHandler, ConversationHandler
-from telegram import ReplyKeyboardMarkup
-import git
 
 sys.path.append('/opt/aenea/config')
-from config import config
+from config import CONFIG
 
 # Constants
 WEEKDAYS = {
@@ -32,6 +28,10 @@ WEEKDAYS = {
     7: "domingo"
 }
 
+# Default initialization
+mensaje = "null"
+
+
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -43,13 +43,13 @@ logger = logging.getLogger(__name__)
 # update. Error handlers also receive the raised TelegramError object in error.
 
 # Identify your bot
-botname = config.get('BOTNAME')
+botname = CONFIG.get('BOTNAME')
 
 
 # Stupid auth function. dafuq
 def auth(bot, update):
     user = update.message.from_user.username  # Received username
-    authorized_user = config.get('AUTHUSER')  # Authorized username, you know...
+    authorized_user = CONFIG.get('AUTHUSER')  # Authorized username, you know...
     if user != authorized_user:
         auth_message = 'No está autorizado a utilizar este bot, ' + str(user)
         bot.sendMessage(update.message.chat_id, text=auth_message)
@@ -61,6 +61,7 @@ def auth(bot, update):
 def start(bot, update):
     authorization = auth(bot, update)
     user = update.message.from_user.username
+    global mensaje
     if authorization is 0:
         mensaje = botname + " lista, " + user + ". ¿En qué puedo ayudarte hoy?"
         bot.sendMessage(update.message.chat_id, text=mensaje)
@@ -68,6 +69,7 @@ def start(bot, update):
 
 def help(bot, update):
     authorization = auth(bot, update)
+    global mensaje
     if authorization is 0:
         mensaje = "Soy " + botname + ", bot de servicio. Aún no tengo funciones definidas"
         bot.sendMessage(update.message.chat_id, text=mensaje)
@@ -94,7 +96,7 @@ def tiempo(bot, update, args):
             dataargs = lugar.lower()
 
         # Let's do some mapgeo magic...
-        apikey = config.get('MAPREQUEST')
+        apikey = CONFIG.get('MAPREQUEST')
         if not apikey:
             mensaje = "No tengo clave de API para geolocalizacion"
             return
@@ -110,7 +112,6 @@ def tiempo(bot, update, args):
             mapgeo = requests.get(map_url, params=map_params)
             json_mapgeo = mapgeo.json()
             # This will be used to know from where the results are (F.E. locality names that exists in different cities
-            mapgeo_location = json_mapgeo["results"][0]["locations"][0]["adminArea3"]
             mapgeo_lat = json_mapgeo["results"][0]["locations"][0]["latLng"]["lat"]
             mapgeo_lon = json_mapgeo["results"][0]["locations"][0]["latLng"]["lng"]
             lat = mapgeo_lat
@@ -135,7 +136,6 @@ def tiempo(bot, update, args):
 
         # Recover data for today (dataseries 1) and tomorrow (dataseries 7)
         for data in range(1, 13, 6):
-            timer7_data = json_timer7["dataseries"][data]
             timer7_cloud = json_timer7["dataseries"][data]["cloudcover"]
             timer7_temp = json_timer7["dataseries"][data]["temp2m"]
             timer7_precipitation = json_timer7["dataseries"][data]["prec_type"]
@@ -183,12 +183,11 @@ def info(bot, update, args):
     global mensaje
     authorization = auth(bot, update)
     if authorization is 0:
-        language = config.get('LANG')
+        language = CONFIG.get('LANG')
         wikipedia.set_lang(language)
         searchstring = ' '.join(args)
         try:
             searchresult = wikipedia.page(searchstring)
-            search_content = searchresult.content
             search_url = searchresult.url
             mensaje = search_url
         except requests.exceptions.RequestException:
@@ -197,7 +196,7 @@ def info(bot, update, args):
             disambiguation_options = disambiguation.options[0:-2]
             mensaje = "Se han encontrado varios resultados. Sea más específico"
         except wikipedia.exceptions.PageError as wikierror:
-            mensaje = "Sin resultados para " + searchstring
+            mensaje = wikierror + "para" + searchstring
         bot.sendMessage(update.message.chat_id, text=mensaje)
 
 
@@ -218,7 +217,7 @@ def jerigonzo(bot, update, args):
             bot.sendMessage(update.message.chat_id, text="[JERIGONZO] - " + translatestring)
 
 
-def buscar(bot, update, args):
+def buscar(bot, update):
     try:
         bot.sendPhoto(update.message.chat_id, photo='https://www.fernandezcordero.net/imagenes/api_buscador.jpg')
     except ConnectionError:
@@ -252,7 +251,7 @@ def man(bot, update, args):
     authorization = auth(bot, update)
     if authorization is 0:
         # Comprueba solo dos argumentos
-        if 2 < len(args) or len(args) == 0:
+        if len(args) > 2 or len(args) == 0:
             message = "Uso de man: comando distro(opcional, por defecto Debian)"
         else:
             # Ponemos el comando en minusculas
@@ -274,9 +273,9 @@ def man(bot, update, args):
             # ARRE!
             try:
                 man_page = requests.get(man_url, params=man_params)
-            except requests.exceptions.RequestException as e:
+            except requests.exceptions.RequestException as requesterror:
                 message = "¡El servicio MAN no está disponible!"
-                print(e)
+                print(requesterror)
             # Valoramos, construimos el mensaje chachipiruli
             if "No man pages for" in man_page.text:
                 message = "No hay paginas man para " + command + " en el servidor " + distro + "."
@@ -306,7 +305,7 @@ def abogadochat(bot, update):
 
 
 def main():
-    token = config.get('TOKEN')
+    token = CONFIG.get('TOKEN')
 
     if token is None:
         print("Please, configure your token first")
@@ -342,4 +341,4 @@ def main():
 
 if __name__ == "__main__":
     print("Arrancando " + botname + "...")
-    main() | print("Error arrancando " + botname)
+    main()
