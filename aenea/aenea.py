@@ -8,6 +8,7 @@ Based on work "AstroobeerBot" from ResetReboot
 
 import logging
 import sys
+import random
 
 import requests
 import wikipedia
@@ -27,9 +28,6 @@ WEEKDAYS = {
     6: "sábado",
     7: "domingo"
 }
-
-# Default initialization
-mensaje = "null"
 
 
 # Enable logging
@@ -66,7 +64,6 @@ def start(bot, update):
     """
     authorization = auth(bot, update)
     user = update.message.from_user.username
-    global mensaje
     if authorization is 0:
         mensaje = botname + " lista, " + user + ". ¿En qué puedo ayudarte hoy?"
         bot.sendMessage(update.message.chat_id, text=mensaje)
@@ -74,7 +71,6 @@ def start(bot, update):
 
 def help(bot, update):
     authorization = auth(bot, update)
-    global mensaje
     if authorization is 0:
         mensaje = "Soy " + botname + ", bot de servicio. Aún no tengo funciones definidas"
         bot.sendMessage(update.message.chat_id, text=mensaje)
@@ -92,7 +88,6 @@ def tiempo(bot, update, args):
     """
     Prevision meteorológica para hoy y mañana
     """
-    global mensaje
     authorization = auth(bot, update)
     if authorization is 0:
         # Check input
@@ -191,7 +186,6 @@ def info(bot, update, args):
     """
         Simple job for wikipedia info searches
     """
-    global mensaje
     authorization = auth(bot, update)
     if authorization is 0:
         language = CONFIG.get('LANG')
