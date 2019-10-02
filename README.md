@@ -17,35 +17,30 @@ Implementado usando la magnífica librería [Python-Telegram-Bot](https://github
 
 Además tiene otras funciones relacionadas con la conversación. Búscalas en el código.
 ####¿Como empezar?
-Genera un fichero config.py como el siguiente:
-```
-# Ejemplo de configuración
-config = {
-    "TOKEN": "Telegram bot Token",
-    "BOTNAME": "El nombre de tu bot",
-    "AUTHUSER": "Usuario autorizado al que el bot contestará (el tuyo)",
-    "MAIL": "Tu email, ya servirá para algo",
-    "LANG": "Idioma para las API",
-    "MAPREQUEST": "MapRequestAPI API key",
-    "USERAGENT": "UserAgent para tu bot",
-}
-```
-Los campos empleados son:
+Carga las siguientes variables de entorno con los valores que se indican abajo:
 
   * TOKEN: Telegram bot Token
   * BOTNAME: El nombre de tu bot
   * AUTHUSER: Usuario autorizado al que el bot contestará (el tuyo)
   * LANG: Idioma para las API
-  * MAIL: Tu email. Para algo servirá.
-  * MAPREQUEST: MapRequestAPI API key
-  * USERAGENT: UserAgent para tu bot
-    
-Despues, crea la imagen docker y lánzala mapeando la ruta del fichero config.py al contenedor:
+  * MAPREQUEST: MapRequestAPI API key. Opcional, pero si no lo seteas la funcionalidad de geoposicionamiento no estará disponible.
 
-`docker run -d --name tu-contenedor -v /ruta/a/config:/opt/aenea/config elautoestopista/aeneabot:latest`
+Puedes fijarte en el fichero de config.example
+    
+Después lanza el contenedor.
+
+`
+source config
+docker run -d --name tu-contenedor elautoestopista/aeneabot:latest
+`
+Alternativamente, puedes pasarle las variables de entorno directamente en el comando:
+
+`
+docker run -d --name tu-contenedor elautoestopista/aeneabot:latest -e TOKEN="XXXXX" -e BOTNAME="BotName" -e AUTHUSER="TuUser" -e LANG="es"
+` 
 
 ¡Listo! Ya tienes tu bot listo. Puedes añadir las modificaciones que desees.
 
-Builds en: https://hub.docker.com/r/elautoestopista/aeneabot/
+Más info en https://hub.docker.com/r/elautoestopista/aeneabot
 
 Colaboraciones bienvenidas.

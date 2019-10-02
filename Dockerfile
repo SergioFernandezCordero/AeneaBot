@@ -9,13 +9,11 @@ RUN wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py #&& pip inst
 RUN mkdir -p /opt/aenea \
     && addgroup aenea \
     && adduser -g aenea -G aenea -h /opt/aenea -D aenea
-# Configure and prepare software
-RUN mkdir -p /opt/aenea/bot/ \
-    && mkdir -p /opt/aenea/config/
+RUN mkdir -p /opt/aenea/bot/
 # Deploy. Yoy should create a config.py file prior to this
 ADD aenea/* /opt/aenea/
 RUN chown -R aenea:aenea /opt/aenea
 RUN pip install -r /opt/aenea/requirements.txt
 # RUN
 USER aenea
-CMD if [ -f /opt/aenea/config/config.py ];then python3 /opt/aenea/aenea.py; else echo "No config file. See README.md"; fi
+CMD python3 /opt/aenea/aenea.py
