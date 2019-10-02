@@ -29,15 +29,15 @@ Puedes fijarte en el fichero de config.example
     
 Después lanza el contenedor.
 
-`
+```
 source config
 docker run -d --name tu-contenedor elautoestopista/aeneabot:latest
-`
+```
 Alternativamente, puedes pasarle las variables de entorno directamente en el comando:
 
-`
+```
 docker run -d --name tu-contenedor elautoestopista/aeneabot:latest -e TOKEN="XXXXX" -e BOTNAME="BotName" -e AUTHUSER="TuUser" -e LANG="es"
-` 
+```
 
 ¡Listo! Ya tienes tu bot listo. Puedes añadir las modificaciones que desees.
 
