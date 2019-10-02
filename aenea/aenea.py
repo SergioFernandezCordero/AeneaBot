@@ -9,14 +9,12 @@ Based on work "AstroobeerBot" from ResetReboot
 import logging
 import sys
 import random
+import os
 
 import requests
 import wikipedia
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-
-sys.path.append('/opt/aenea/config')
-from config import CONFIG
 
 # Constants
 WEEKDAYS = {
@@ -41,7 +39,7 @@ logger = logging.getLogger(__name__)
 # update. Error handlers also receive the raised TelegramError object in error.
 
 # Identify your bot
-botname = CONFIG.get('BOTNAME')
+botname = (os.environ['BOTNAME'])
 
 
 def auth(bot, update):
@@ -49,7 +47,7 @@ def auth(bot, update):
     Stupid auth function. dafuq
     """
     user = update.message.from_user.username  # Received username
-    authorized_user = CONFIG.get('AUTHUSER')  # Authorized username, you know...
+    authorized_user = (os.environ['AUTHUSER'])  # Authorized username, you know...
     if user != authorized_user:
         auth_message = 'No está autorizado a utilizar este bot, ' + str(user)
         bot.sendMessage(update.message.chat_id, text=auth_message)
@@ -106,7 +104,7 @@ def tiempo(bot, update, args):
             dataargs = lugar.lower()
 
         # Let's do some mapgeo magic...
-        apikey = CONFIG.get('MAPREQUEST')
+        apikey = (os.environ['MAPREQUEST'])
         if not apikey:
             mensaje = "No tengo clave de API para geolocalizacion"
             return
@@ -192,7 +190,7 @@ def info(bot, update, args):
     """
     authorization = auth(bot, update)
     if authorization is 0:
-        language = CONFIG.get('LANG')
+        language = (os.environ['LANG'])
         wikipedia.set_lang(language)
         searchstring = ' '.join(args)
         try:
@@ -319,7 +317,8 @@ def main():
     """
     Lanza la lógica del programa
     """
-    token = CONFIG.get('TOKEN')
+
+    token = (os.environ['TOKEN'])
 
     if token is None:
         print("Please, configure your token first")
