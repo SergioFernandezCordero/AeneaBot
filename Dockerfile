@@ -9,8 +9,8 @@ RUN wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py #&& pip inst
 RUN mkdir -p /opt/aenea \
     && addgroup aenea \
     && adduser -g aenea -G aenea -h /opt/aenea -D aenea
-# Configure and prepare software
-RUN mkdir -p /opt/aenea/bot/ \
+RUN mkdir -p /opt/aenea/bot/
+# Deploy. Yoy should create a config.py file prior to this
 ADD aenea/* /opt/aenea/
 RUN chown -R aenea:aenea /opt/aenea
 RUN pip install -r /opt/aenea/requirements.txt

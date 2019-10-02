@@ -7,6 +7,6 @@ share/
 *.pyc
 *.swp
 pip-selfcheck.json
-config.py
+config.example
 .idea/*
 __pycache__/*
