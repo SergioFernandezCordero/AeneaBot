@@ -130,7 +130,7 @@ def tiempo(bot, update, args):
             return
 
         # Building URL to query the service
-        url_service = 'http://202.127.24.18/bin/astro.php'  # Should this go outta here?
+        url_service = 'http://www.7timer.info/bin/astro.php'  # Should this go outta here?
         url_params = {'lon': str(lon), 'lat': str(lat), 'output': "json", 'tzshift': "0", 'unit': "metric", 'ac': "0"}
 
         # Query service
