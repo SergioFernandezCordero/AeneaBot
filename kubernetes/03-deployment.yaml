@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aeneabot
+  labels:
+    app: aeneabot
+  namespace: aeneabot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aeneabot
+  template:
+    metadata:
+      labels:
+        app: aeneabot
+    spec:
+      containers:
+      - name: aeneabot
+        image: backd/aenea:test
+        imagePullPolicy: Always
+        env:
+        - name: TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: aeneabot-conf
+              key: token
+        - name: BOTNAME
+          valueFrom:
+            secretKeyRef:
+              name: aeneabot-conf
+              key: botname
+        - name: AUTHUSER
+          valueFrom:
+            secretKeyRef:
+              name: aeneabot-conf
+              key: authuser
+        - name: LANG
+          valueFrom:
+            secretKeyRef:
+              name: aeneabot-conf
+              key: lang
