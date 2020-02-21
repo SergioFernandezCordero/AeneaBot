@@ -12,20 +12,8 @@ import random
 import os
 
 import requests
-import wikipedia
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-
-# Constants
-WEEKDAYS = {
-    1: "lunes",
-    2: "martes",
-    3: "miércoles",
-    4: "jueves",
-    5: "viernes",
-    6: "sábado",
-    7: "domingo"
-}
 
 
 # Enable logging
@@ -34,9 +22,6 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-
-# Define a few command handlers. These usually take the two arguments bot and
-# update. Error handlers also receive the raised TelegramError object in error.
 
 # Identify your bot
 botname = (os.environ['BOTNAME'])
@@ -83,154 +68,6 @@ def error(update, errors):
     Logs execution errors
     """
     logger.warning('Update "%s" caused error "%s"' % (update, errors))
-
-
-# This is were the fun begins
-def tiempo(bot, update, args):
-    """
-    Prevision meteorológica para hoy y mañana
-    """
-    authorization = auth(bot, update)
-    if authorization is 0:
-        # Check input
-        if not args:
-            # No input, no way
-            mensaje = "¿De dónde?"
-            bot.sendMessage(update.message.chat_id, text=mensaje)
-            return
-        else:
-            # screw it!
-            lugar = ' '.join(args)
-            dataargs = lugar.lower()
-
-        # Let's do some mapgeo magic...
-        apikey = (os.environ['MAPREQUEST'])
-        if not apikey:
-            mensaje = "No tengo clave de API para geolocalizacion"
-            return
-        # Build URL as usual
-        map_url = 'http://www.mapquestapi.com/geocoding/v1/address'
-        map_params = {'key': apikey, 'location': str(dataargs), 'maxResults': 1}
-        # Get LAT/LON for a location
-        try:
-            # WARNING: Note that MapRequestApi doesn't test if location exists. Instead of this it does
-            # some kind of heuristic-holistic matching with some kind of last-resort database.
-            # This means that, as if you pass random characters as input, you always get a valid response.
-            # Weirdo...
-            mapgeo = requests.get(map_url, params=map_params)
-            json_mapgeo = mapgeo.json()
-            # This will be used to know from where the results are (F.E. locality names that exists in different cities
-            mapgeo_lat = json_mapgeo["results"][0]["locations"][0]["latLng"]["lat"]
-            mapgeo_lon = json_mapgeo["results"][0]["locations"][0]["latLng"]["lng"]
-            lat = mapgeo_lat
-            lon = mapgeo_lon
-        except ConnectionError:
-            # Something went wrong?
-            mensaje = "Servicio de geolocalización no disponible"
-            return
-
-        # Building URL to query the service
-        url_service = 'http://www.7timer.info/bin/astro.php'  # Should this go outta here?
-        url_params = {'lon': str(lon), 'lat': str(lat), 'output': "json", 'tzshift': "0", 'unit': "metric", 'ac': "0"}
-
-        # Query service
-        try:
-            timer7 = requests.get(url_service, params=url_params)
-        except requests.exceptions.RequestException:
-            mensaje = "¡No puedo recuperar la información meteorológica!"
-            return
-
-        json_timer7 = timer7.json()
-
-        # Recover data for today (dataseries 1) and tomorrow (dataseries 7)
-        for data in range(1, 13, 6):
-            timer7_cloud = json_timer7["dataseries"][data]["cloudcover"]
-            timer7_temp = json_timer7["dataseries"][data]["temp2m"]
-            timer7_precipitation = json_timer7["dataseries"][data]["prec_type"]
-
-            # Test if it will rain or not (important for laundry day!)
-            if timer7_precipitation == "rain":
-                mensaje_lluvia = " lloverá"
-            else:
-                mensaje_lluvia = " no lloverá"
-
-            # Compose messages about clouds
-            if 3 < timer7_cloud < 5:
-                mensaje_cloud = " habrá bastantes nubes"
-            elif 3 > timer7_cloud > 1:
-                mensaje_cloud = " habrá pocas nubes"
-            elif timer7_cloud == 1:
-                mensaje_cloud = " habrá cielo despejado"
-            elif timer7_cloud > 5:
-                mensaje_cloud = " estará muy nublado"
-            else:
-                mensaje_cloud = " no habrá nubes"
-
-            # Message about temperature
-            if timer7_temp == 1:
-                mensaje_temp = " y habrá una temperatura de " + str(timer7_temp) + " grado."
-            else:
-                mensaje_temp = " y habrá una temperatura de " + str(timer7_temp) + " grados."
-
-            # Now compose full message
-            if data is 1:
-                mensaje = "Hoy en " + lugar + ", " + mensaje_lluvia + "," + mensaje_cloud + "," + mensaje_temp
-            else:
-                mensaje1 = "Mañana en " + lugar + ", " + mensaje_lluvia + "," + mensaje_cloud + "," + mensaje_temp
-
-        # Vomit the response
-        bot.sendMessage(update.message.chat_id, text=mensaje)
-        bot.sendMessage(update.message.chat_id, text=mensaje1)
-    return
-
-
-def info(bot, update, args):
-    """
-        Simple job for wikipedia info searches
-    """
-    authorization = auth(bot, update)
-    if authorization is 0:
-        language = (os.environ['LANG'])
-        wikipedia.set_lang(language)
-        searchstring = ' '.join(args)
-        try:
-            searchresult = wikipedia.page(searchstring)
-            search_url = searchresult.url
-            mensaje = search_url
-        except requests.exceptions.RequestException:
-            mensaje = "Wikipedia no está disponible"
-        except wikipedia.exceptions.DisambiguationError as disambiguation:
-            mensaje = "Se han encontrado varios resultados. Sea más específico"
-        except wikipedia.exceptions.PageError as wikierror:
-            mensaje = wikierror + "para" + searchstring
-        bot.sendMessage(update.message.chat_id, text=mensaje)
-
-
-def jerigonzo(bot, update, args):
-    """
-    Traduce un texto a jerigonzo
-    Ver: https://es.wikipedia.org/wiki/Jerigonza
-    """
-    authorization = auth(bot, update)
-    if authorization is 0:
-        if not args:
-            bot.sendMessage(update.message.chat_id, text="[cries in jeriogonzo]")
-        else:
-            translatestring = ' '.join(args).lower()
-            vocales = ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U']
-            for vocal in vocales:
-                translatestring = translatestring.replace(vocal, vocal + "p" + vocal)
-            bot.sendMessage(update.message.chat_id, text="[JERIGONZO] - " + translatestring)
-
-
-def buscar(bot, update):
-    """
-    Busca información en un buscador de internet
-    """
-    try:
-        bot.sendPhoto(update.message.chat_id, photo='https://www.fernandezcordero.net/imagenes/api_buscador.jpg')
-    except ConnectionError:
-        bot.sendMessage(update.message.chat_id, text="Ni la imagen te puedo mostrar...")
 
 
 def ruok(bot, update):
@@ -295,24 +132,6 @@ def man(bot, update, args):
         bot.sendMessage(update.message.chat_id, text=message)
 
 
-def abogadochat(bot, update):
-    """
-       Grosería inspirada en una broma del trabajo
-    """
-    authorization = auth(bot, update)
-    if authorization is 0:
-        msg = update.message.text.lower()
-        if msg[-3:] == "ado" and "colgado" not in msg:
-            bot.sendMessage(update.message.chat_id, text="Como lo que tengo aquí colgado...")
-            bot.sendPhoto(update.message.chat_id, photo='https://www.fernandezcordero.net/imagenes/colgado.jpg')
-            bot.sendMessage(update.message.chat_id, text="Lo siento, me han programado así...")
-
-        if "colgado" in msg and "abogado" not in msg:
-            bot.sendMessage(update.message.chat_id, text="Como el abogado...")
-            bot.sendPhoto(update.message.chat_id, photo='https://www.fernandezcordero.net/imagenes/imean.jpg')
-            bot.sendMessage(update.message.chat_id, text="Lo siento, me han programado así...")
-
-
 def main():
     """
     Lanza la lógica del programa
@@ -330,12 +149,8 @@ def main():
     # on different commands - answer in Telegram
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", ayuda))
-    dispatcher.add_handler(CommandHandler("tiempo", tiempo, pass_args=True))
-    dispatcher.add_handler(CommandHandler("info", info, pass_args=True))
-    dispatcher.add_handler(CommandHandler("buscar", buscar, pass_args=True))
     dispatcher.add_handler(CommandHandler("dado", dado, pass_args=False))
     dispatcher.add_handler(CommandHandler("ruok", ruok, pass_args=False))
-    dispatcher.add_handler(CommandHandler("jerigonzo", jerigonzo, pass_args=True))
     dispatcher.add_handler(CommandHandler("man", man, pass_args=True))
 
     # on noncommand i.e message - echo the message on Telegram

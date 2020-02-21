@@ -4,6 +4,5 @@ future==0.15.2
 python-telegram-bot==5.0.0
 requests
 urllib3
-wikipedia
 pyasn1
 pyasn1_modules
