@@ -22,139 +22,125 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-
-# Identify your bot
+# Environment
+token = (os.environ['TOKEN'])
 botname = (os.environ['BOTNAME'])
+authuser = (os.environ['AUTHUSER'])
 
 
-def auth(bot, update):
+# Telegram shortcuts
+
+
+def error(update, context):
+    """
+    Logs execution errors
+    """
+    logger.warning('Update "%s" caused error "%s"' % (update, context.error))
+
+
+def sendmessage(update, context, message):
+    context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+
+
+# Bot Functions
+
+def auth(update, context):
     """
     Stupid auth function. dafuq
     """
     user = update.message.from_user.username  # Received username
-    authorized_user = (os.environ['AUTHUSER'])  # Authorized username, you know...
-    if user != authorized_user:
-        auth_message = 'No está autorizado a utilizar este bot, ' + str(user)
-        bot.sendMessage(update.message.chat_id, text=auth_message)
-        return 1
+    if user == authuser:
+        logger.debug('User "%s" allowed' % user)
+        return True
     else:
-        return 0
+        auth_message = 'You are not allowed to use this bot, ' + str(user)
+        sendmessage(update, context, auth_message)
+        logger.warning('User "%s" not allowed' % user)
+        return False
 
 
-def start(bot, update):
-    """
-    Runs the bot
-    """
-    authorization = auth(bot, update)
-    user = update.message.from_user.username
-    if authorization is 0:
-        mensaje = botname + " lista, " + user + ". ¿En qué puedo ayudarte hoy?"
-        bot.sendMessage(update.message.chat_id, text=mensaje)
-
-
-def ayuda(bot, update):
+def help(update, context):
     """
     Funcion de ayuda.
-
     """
-    authorization = auth(bot, update)
-    if authorization is 0:
-        mensaje = "Soy " + botname + ", bot de servicio. Aún no tengo funciones definidas"
-        bot.sendMessage(update.message.chat_id, text=mensaje)
+    if auth(update, context):
+        help_message = "Hi, I'm " + botname + ", service bot. Not any function defined yet."
+        sendmessage(update, context, help_message)
 
 
-def error(update, errors):
-    """
-    Logs execution errors
-    """
-    logger.warning('Update "%s" caused error "%s"' % (update, errors))
-
-
-def ruok(bot, update):
+def ruok(update, context):
     """
         Silly function to check if it's online
     """
-    authorization = auth(bot, update)
-    if authorization is 0:
-        bot.sendMessage(update.message.chat_id, text="imok")
+    if auth(update, context):
+        sendmessage(update, context, "imok")
 
 
-def dado(bot, update):
+def dice(update, context):
     """
-        Lanza un dado de 6 caras
+    Run a 6 sided dice
     """
-    authorization = auth(bot, update)
-    if authorization is 0:
-        dadillo = random.randrange(1, 6)
-        bot.sendMessage(update.message.chat_id, text=dadillo)
+    if auth(update, context):
+        sendmessage(update, context, random.randrange(1, 6))
 
 
-def man(bot, update, args):
+def man(update, context, command='None', distro='Debian'):
     """
-    Busca la pagina man del comando indicado
-    Permite especificar el sistema y distro en una amplia lista.
+    Lookup a command for selected distro and SO into manpages
     """
-    authorization = auth(bot, update)
-    if authorization is 0:
-        # Comprueba solo dos argumentos
-        if len(args) > 2 or len(args) == 0:
-            message = "Uso de man: comando distro(opcional, por defecto Debian)"
+    if auth(update, context):
+        if command == 'None':
+            message = "Usage: command distro(optional, defaults to Debian)"
         else:
-            # Ponemos el comando en minusculas
-            command = args[0].lower()
-            if len(args) == 2 and args[1]:
-                # Apaño para facilitar la búsqueda:
-                if not args[1][0].isupper():
-                    # Si la primera es minúscula, capitalizamos
-                    distro = args[1].capitalize()
-                else:
-                    # Si no, asumimos que se ha escrito así a conciencia y pasamos literalmente
-                    distro = args[1]
+            command = command.lower()
+            if not distro.isupper():
+                distro = distro.capitalize()
             else:
-                # Por defecto, si no hay segundo argumento
-                distro = "Debian"
-            # Construimos la URL con ls parametros
+                distro = distro
             man_url = 'http://www.polarhome.com/service/man'
             man_params = {'qf': command, 'af': 0, 'sf': 0, 'of': distro, 'tf': 0}
-            # ARRE!
             try:
                 man_page = requests.get(man_url, params=man_params)
             except requests.exceptions.RequestException as requesterror:
-                message = "¡El servicio MAN no está disponible!"
-                print(requesterror)
-            # Valoramos, construimos el mensaje chachipiruli
+                message = "MAN service unavailable!"
+                logger.error('Failed to connect to MAN service: "%s"' % requesterror)
             if "No man pages for" in man_page.text:
-                message = "No hay paginas man para " + command + " en el servidor " + distro + "."
+                message = "No man pages for " + command + " on server " + distro + "."
             else:
-                message = "Comando " + command + " para " + distro + "\n" + man_page.text[62:500] + \
-                          "\n Página completa en: \n" + man_page.url
-        # Habla por esa boca
-        bot.sendMessage(update.message.chat_id, text=message)
+                message = "Command " + command + " for " + distro + "\n" + man_page.text[62:500] + \
+                          "\n Full page on: \n" + man_page.url
+        sendmessage(update, context, message)
+
+
+def unknown(update, context):
+    """
+    Fallback MessageHandler for unrecognized commands
+    """
+    sendmessage(update, context, "Sorry, I didn't understand that command.")
+    logger.debug('Invalid command')
 
 
 def main():
     """
-    Lanza la lógica del programa
+    Run the logic
     """
-
-    token = (os.environ['TOKEN'])
 
     if token is None:
         print("Please, configure your token first")
         sys.exit(1)
 
-    updater = Updater(token)
+    updater = Updater(token, use_context=True)
+
     dispatcher = updater.dispatcher
 
     # on different commands - answer in Telegram
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("help", ayuda))
-    dispatcher.add_handler(CommandHandler("dado", dado, pass_args=False))
+    dispatcher.add_handler(CommandHandler("help", help))
+    dispatcher.add_handler(CommandHandler("dice", dice, pass_args=False))
     dispatcher.add_handler(CommandHandler("ruok", ruok, pass_args=False))
     dispatcher.add_handler(CommandHandler("man", man, pass_args=True))
-
-    # on noncommand i.e message - echo the message on Telegram
-    dispatcher.add_handler(MessageHandler([Filters.text], abogadochat))
+    # failover handler
+    unknown_handler = MessageHandler(Filters.command, unknown)
+    dispatcher.add_handler(unknown_handler)
 
     # log all errors
     dispatcher.add_error_handler(error)
@@ -167,6 +153,7 @@ def main():
     # start_polling() is non-blocking and will stop the bot gracefully.
     updater.idle()
 
+
 if __name__ == "__main__":
-    print("Arrancando " + botname + "...")
+    print("Running " + botname + "...")
     main()

@@ -1,7 +1,7 @@
-beautifulsoup4==4.4.1
+beautifulsoup4
 certifi
-future==0.15.2
-python-telegram-bot==5.0.0
+future
+python-telegram-bot==12.4.2
 requests
 urllib3
 pyasn1
