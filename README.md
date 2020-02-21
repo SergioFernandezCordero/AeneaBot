@@ -9,10 +9,7 @@ Implementado usando la magnífica librería [Python-Telegram-Bot](https://github
 ####Comandos;
 
 - /ruok - Check de estado. Devuelve "imok" si correcto
-- /info - Busca en Wikipedia
 - /dado - lanza un dado de 6 caras
-- /tiempo - Previsión meteorológica de la localidad indicada
-- /buscar - Busca información en Internet
 - /man - Muestra la página "man" del comando especificado. Por defecto Debian si no se especifica otro.(Mas info [aquí](http://www.polarhome.com/service/man/))
 
 Además tiene otras funciones relacionadas con la conversación. Búscalas en el código.
@@ -23,7 +20,6 @@ Carga las siguientes variables de entorno con los valores que se indican abajo:
   * BOTNAME: El nombre de tu bot
   * AUTHUSER: Usuario autorizado al que el bot contestará (el tuyo)
   * LANG: Idioma para las API
-  * MAPREQUEST: MapRequestAPI API key. Opcional, pero si no lo seteas la funcionalidad de geoposicionamiento no estará disponible.
 
 Puedes fijarte en el fichero de config.example
     
