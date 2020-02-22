@@ -1,4 +1,4 @@
-FROM armv8/alpine:latest
+FROM arm32v7/alpine:latest
 Maintainer sergio@fernandezcordero.net
 
 # Environment and dependencies
