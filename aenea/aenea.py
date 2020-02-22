@@ -11,6 +11,7 @@ import sys
 import random
 import os
 
+import re
 import requests
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
@@ -18,7 +19,7 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+                    level=logging.DEBUG)
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +29,7 @@ botname = (os.environ['BOTNAME'])
 authuser = (os.environ['AUTHUSER'])
 
 
-# Telegram shortcuts
-
+# Tools
 
 def error(update, context):
     """
@@ -41,8 +41,6 @@ def error(update, context):
 def sendmessage(update, context, message):
     context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
-
-# Bot Functions
 
 def auth(update, context):
     """
@@ -59,9 +57,11 @@ def auth(update, context):
         return False
 
 
+# Telegram CommandHandlers
+
 def help(update, context):
     """
-    Funcion de ayuda.
+    Help Function
     """
     if auth(update, context):
         help_message = "Hi, I'm " + botname + ", service bot. Not any function defined yet."
@@ -70,7 +70,7 @@ def help(update, context):
 
 def ruok(update, context):
     """
-        Silly function to check if it's online
+    Authenticatin Function
     """
     if auth(update, context):
         sendmessage(update, context, "imok")
@@ -84,32 +84,34 @@ def dice(update, context):
         sendmessage(update, context, random.randrange(1, 6))
 
 
-def man(update, context, command='None', distro='Debian'):
+def man(update, context):
     """
     Lookup a command for selected distro and SO into manpages
     """
-    if auth(update, context):
-        if command == 'None':
-            message = "Usage: command distro(optional, defaults to Debian)"
+    if auth(update, context) and 0 < len(context.args) < 3:
+        command = context.args[0]
+        command = command.lower()
+        if len(context.args) == 2:
+            distro = context.args[1]
         else:
-            command = command.lower()
-            if not distro.isupper():
-                distro = distro.capitalize()
-            else:
-                distro = distro
-            man_url = 'http://www.polarhome.com/service/man'
-            man_params = {'qf': command, 'af': 0, 'sf': 0, 'of': distro, 'tf': 0}
-            try:
-                man_page = requests.get(man_url, params=man_params)
-            except requests.exceptions.RequestException as requesterror:
-                message = "MAN service unavailable!"
-                logger.error('Failed to connect to MAN service: "%s"' % requesterror)
-            if "No man pages for" in man_page.text:
+            distro = "Debian"
+        if not distro.isupper():
+            distro = distro.capitalize()
+        man_url = 'http://www.polarhome.com/service/man'
+        man_params = {'qf': command, 'af': 0, 'sf': 0, 'of': distro, 'tf': 0}
+        try:
+            manpage = requests.get(man_url, params=man_params)
+            if re.search('No man pages for', manpage.text):
                 message = "No man pages for " + command + " on server " + distro + "."
             else:
-                message = "Command " + command + " for " + distro + "\n" + man_page.text[62:500] + \
-                          "\n Full page on: \n" + man_page.url
-        sendmessage(update, context, message)
+                message = "Command " + command + " for " + distro + "\n" + manpage.text[62:500] + \
+                          "\n Full page on: \n" + manpage.url
+        except requests.exceptions.RequestException as requesterror:
+            message = "MAN service unavailable!"
+            logger.error('Failed to connect to MAN service: "%s"' % requesterror)
+    else:
+        message = "Usage: /man command distro(optional, defaults to Debian)"
+    sendmessage(update, context, message)
 
 
 def unknown(update, context):

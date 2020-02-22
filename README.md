@@ -1,42 +1,31 @@
 # AeneaBot
 
-Tu bot personal de Telegram con varias funciones.
+Your personal Telegram bot with several functions.
 
-Basado en el proyecto [AstroBeerBot](https://github.com/resetreboot/astrobeerbot) de mi amigo [ResetReboot](https://github.com/resetreboot), con el que también colaboro.
+Based on project [AstroBeerBot](https://github.com/resetreboot/astrobeerbot) from my friend [ResetReboot](https://github.com/resetreboot)
 
-Implementado usando la magnífica librería [Python-Telegram-Bot](https://github.com/python-telegram-bot/python-telegram-bot)
+Built with [Python-Telegram-Bot](https://github.com/python-telegram-bot/python-telegram-bot)
 
-####Comandos;
+#### Commands
 
-- /ruok - Check de estado. Devuelve "imok" si correcto
-- /dado - lanza un dado de 6 caras
-- /man - Muestra la página "man" del comando especificado. Por defecto Debian si no se especifica otro.(Mas info [aquí](http://www.polarhome.com/service/man/))
+- /ruok - Status check. Returns "imok" if ok.
+- /dice - Runs a 6 sides dice.
+- /man - Shows "man" page for the specified command. Defaults to Debian distro.(More info [aquí](http://www.polarhome.com/service/man/))
 
-Además tiene otras funciones relacionadas con la conversación. Búscalas en el código.
-####¿Como empezar?
-Carga las siguientes variables de entorno con los valores que se indican abajo:
+#### How to run
+Load the following envvars as specified:
 
   * TOKEN: Telegram bot Token
-  * BOTNAME: El nombre de tu bot
-  * AUTHUSER: Usuario autorizado al que el bot contestará (el tuyo)
-  * LANG: Idioma para las API
+  * BOTNAME: Your bot name
+  * AUTHUSER: Username allowed to use the bot (yours) 
+  * LANG: Language for the APIs
 
-Puedes fijarte en el fichero de config.example
+For further info see config.example file.
     
-Después lanza el contenedor.
-
-```
-source config
-docker run -d --name tu-contenedor elautoestopista/aeneabot:latest
-```
-Alternativamente, puedes pasarle las variables de entorno directamente en el comando:
-
+You can run in a docker container this way:
 ```
 docker run -d --name tu-contenedor elautoestopista/aeneabot:latest -e TOKEN="XXXXX" -e BOTNAME="BotName" -e AUTHUSER="TuUser" -e LANG="es"
 ```
+And that's all! Your bot is up and running. You can add the modifications you want.
 
-¡Listo! Ya tienes tu bot listo. Puedes añadir las modificaciones que desees.
-
-Más info en https://hub.docker.com/r/elautoestopista/aeneabot
-
-Colaboraciones bienvenidas.
+More info at https://hub.docker.com/r/elautoestopista/aeneabot
