@@ -1,5 +1,6 @@
 FROM amd64/alpine:latest
-LABEL Maintainer sergio@fernandezcordero.net
+
+LABEL maintainer="sergio@fernandezcordero.net"
 
 # Environment and dependencies
 RUN apk update && apk add bash python3 ca-certificates wget gcc python3-dev musl-dev libffi-dev openssl-dev\
