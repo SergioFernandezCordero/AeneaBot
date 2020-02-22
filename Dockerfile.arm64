@@ -1,4 +1,4 @@
-FROM arm64/alpine:latest
+FROM aarch64/alpine:latest
 Maintainer sergio@fernandezcordero.net
 
 # Environment and dependencies
