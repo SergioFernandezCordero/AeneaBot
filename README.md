@@ -9,7 +9,7 @@ Built with [Python-Telegram-Bot](https://github.com/python-telegram-bot/python-t
 #### Commands
 
 - /ruok - Status check. Returns "imok" if ok.
-- /dado - Runs a 6 sides dice.
+- /dice - Runs a 6 sides dice.
 - /man - Shows "man" page for the specified command. Defaults to Debian distro.(More info [aquí](http://www.polarhome.com/service/man/))
 
 #### How to run
