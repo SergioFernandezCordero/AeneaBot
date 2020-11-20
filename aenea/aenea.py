@@ -18,20 +18,18 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 import sqlite3
 
-loglevel = (os.environ['LOGLEVEL'])
+# Environment
+token = os.getenv('TOKEN', default=None)
+botname = os.getenv('BOTNAME', default="AeneaBot")
+authuser = os.getenv('AUTHUSER', default="User")
+dbpath = os.getenv('DB_PATH', default="/var/aenea-db")
+loglevel = os.getenv('LOGLEVEL', default="INFO")
 
-# Enable logging
+# Initialize logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=loglevel)
 
 logger = logging.getLogger(__name__)
-
-# Environment
-token = (os.environ['TOKEN'])
-botname = (os.environ['BOTNAME'])
-authuser = (os.environ['AUTHUSER'])
-dbpath = (os.environ['DB_PATH'])
-
 
 # Tools
 
@@ -160,16 +158,14 @@ def init_volatile_db():
     finally:
         volatile_conn.close()
 
-def main():
+def bot_routine():
     """
-    Run the logic
+    Runs the bot logic
     """
-    
-    init_persistent_db()
-    init_volatile_db()
 
+    logger.info("Running " + botname + "...")
     if token is None:
-        print("Please, configure your token first")
+        logger.error("TOKEN is not defined. Please, configure your token first")
         sys.exit(1)
 
     updater = Updater(token, use_context=True)
@@ -194,9 +190,19 @@ def main():
     # Run the bot until the you presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
+    logger.info(botname +" Bot Running")
     updater.idle()
 
 
+def main():
+    """
+    Magic
+    """
+    
+    init_persistent_db()
+    init_volatile_db()
+    bot_routine()
+
+
 if __name__ == "__main__":
-    logger.info("Running " + botname + "...")
     main()

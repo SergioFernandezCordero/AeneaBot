@@ -19,13 +19,53 @@ Load the following envvars as specified:
   * BOTNAME: Your bot name
   * AUTHUSER: Username allowed to use the bot (yours) 
   * LANG: Language for the APIs
+  * DB_PATH: Path for the SQLite3 persistent databse
+  * LOGLEVEL: Log level output. See [python docs](https://docs.python.org/3/howto/logging.html#when-to-use-logging)
 
 For further info see config.example file.
     
 You can run in a docker container this way:
 ```
-docker run -d --name tu-contenedor elautoestopista/aeneabot:latest -e TOKEN="XXXXX" -e BOTNAME="BotName" -e AUTHUSER="TuUser" -e LANG="es"
+docker run -d --name tu-contenedor elautoestopista/aeneabot:latest -e TOKEN="XXXXX" -e BOTNAME="BotName" -e AUTHUSER="TuUser" -e LANG="es" -e LOGLEVEL="DEBUG" -e DB_PATH="/tmp"
 ```
 And that's all! Your bot is up and running. You can add the modifications you want.
 
-More info at https://hub.docker.com/r/elautoestopista/aeneabot
+#### Development
+
+In order to develop you can run the bot locally:
+
+```
+export TOKEN="<token_gibberish>"
+export BOTNAME="MyBot"
+export AUTHUSER="MyTelegramUser"
+export LANG="es"
+export LOGLEVEL="DEBUG"
+export DB_PATH="/path/to/db"
+
+python3 aenea/aenea.py
+```
+
+#### Building
+
+You can build your Docker images this way:
+
+```
+# Login into your registry (for example DockerHub)
+docker login
+
+# Initialize building environment
+sudo apt-get install qemu-user-static
+docker buildx create --name aeneabot --platform linux/amd64,linux/arm64,linux/arm/v7
+docker buildx use aeneabot
+docker buildx inspect --bootstrap
+
+# Local images for testing
+docker buildx build --platform linux/amd64 -t dockerhubid/aeneabot:develop --load .
+
+# Development images on DockerHub (multiplatform)
+docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t dockerhubid/aeneabot:develop --push .
+
+# Stable releases (multiplatform)
+docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t dockerhubid/aeneabot:latest --push .
+docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t dockerhubid/aeneabot:release-<version> --push .
+```
