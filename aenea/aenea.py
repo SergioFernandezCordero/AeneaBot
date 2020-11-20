@@ -16,10 +16,13 @@ import requests
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
+import sqlite3
+
+loglevel = (os.environ['LOGLEVEL'])
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.DEBUG)
+                    level=loglevel)
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +30,7 @@ logger = logging.getLogger(__name__)
 token = (os.environ['TOKEN'])
 botname = (os.environ['BOTNAME'])
 authuser = (os.environ['AUTHUSER'])
+dbpath = (os.environ['DB_PATH'])
 
 
 # Tools
@@ -121,11 +125,19 @@ def unknown(update, context):
     sendmessage(update, context, "Sorry, I didn't understand that command.")
     logger.debug('Invalid command')
 
+# database
+def init_db():
+    """
+    Init a SQLite database if doesn't exists
+    """
+    db_conn = sqlite3.connect('"%s"/AeneaDB.db' % dbpath)
 
 def main():
     """
     Run the logic
     """
+
+    init_db
 
     if token is None:
         print("Please, configure your token first")
