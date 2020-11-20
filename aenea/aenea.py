@@ -126,18 +126,47 @@ def unknown(update, context):
     logger.debug('Invalid command')
 
 # database
-def init_db():
+def init_persistent_db():
     """
-    Init a SQLite database if doesn't exists
+    Connect to a SQLite database. Create it if it doesn't exists.
     """
-    db_conn = sqlite3.connect('"%s"/AeneaDB.db' % dbpath)
+
+    logger.info("Connecting to persistent database " + dbpath + "/AeneaDB.db")
+    try:
+        persistent_conn = sqlite3.connect(dbpath + "/AeneaDB.db")
+        logger.info("Database connection successful")
+    except Error:
+        logger.error(Error)
+    finally:
+        persistent_conn.close()
+
+def init_volatile_db():
+    """
+    Create a SQLite database in memory for volatile data
+    """
+
+    logger.info("Initializing volatile in-memory database")
+    try:
+        volatile_conn = sqlite3.connect(':memory:')
+        try:
+            logger.info("Initialize events table")
+            volatile_cursor = volatile_conn.cursor()
+            volatile_cursor.execute("CREATE TABLE events(event_id integer PRIMARY KEY, event_title text, event_content text, event_date text)")
+            logger.info("Volatile in-memory database created successful")
+        except Error:
+            logger.error(Error)
+    except Error:
+        logger.error(Error)
+    finally:
+        volatile_conn.close()
 
 def main():
     """
     Run the logic
     """
-
-    init_db
+    
+    init_persistent_db()
+    init_volatile_db()
 
     if token is None:
         print("Please, configure your token first")
@@ -169,5 +198,5 @@ def main():
 
 
 if __name__ == "__main__":
-    print("Running " + botname + "...")
+    logger.info("Running " + botname + "...")
     main()
