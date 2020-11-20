@@ -16,18 +16,20 @@ import requests
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
-
-# Enable logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.DEBUG)
-
-logger = logging.getLogger(__name__)
+import sqlite3
 
 # Environment
-token = (os.environ['TOKEN'])
-botname = (os.environ['BOTNAME'])
-authuser = (os.environ['AUTHUSER'])
+token = os.getenv('TOKEN', default=None)
+botname = os.getenv('BOTNAME', default="AeneaBot")
+authuser = os.getenv('AUTHUSER', default="User")
+dbpath = os.getenv('DB_PATH', default="/var/aenea-db")
+loglevel = os.getenv('LOGLEVEL', default="INFO")
 
+# Initialize logging
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=loglevel)
+
+logger = logging.getLogger(__name__)
 
 # Tools
 
@@ -121,14 +123,49 @@ def unknown(update, context):
     sendmessage(update, context, "Sorry, I didn't understand that command.")
     logger.debug('Invalid command')
 
-
-def main():
+# database
+def init_persistent_db():
     """
-    Run the logic
+    Connect to a SQLite database. Create it if it doesn't exists.
     """
 
+    logger.info("Connecting to persistent database " + dbpath + "/AeneaDB.db")
+    try:
+        persistent_conn = sqlite3.connect(dbpath + "/AeneaDB.db")
+        logger.info("Database connection successful")
+    except Error:
+        logger.error(Error)
+    finally:
+        persistent_conn.close()
+
+def init_volatile_db():
+    """
+    Create a SQLite database in memory for volatile data
+    """
+
+    logger.info("Initializing volatile in-memory database")
+    try:
+        volatile_conn = sqlite3.connect(':memory:')
+        try:
+            logger.info("Initialize events table")
+            volatile_cursor = volatile_conn.cursor()
+            volatile_cursor.execute("CREATE TABLE events(event_id integer PRIMARY KEY, event_title text, event_content text, event_date text)")
+            logger.info("Volatile in-memory database created successful")
+        except Error:
+            logger.error(Error)
+    except Error:
+        logger.error(Error)
+    finally:
+        volatile_conn.close()
+
+def bot_routine():
+    """
+    Runs the bot logic
+    """
+
+    logger.info("Running " + botname + "...")
     if token is None:
-        print("Please, configure your token first")
+        logger.error("TOKEN is not defined. Please, configure your token first")
         sys.exit(1)
 
     updater = Updater(token, use_context=True)
@@ -153,9 +190,19 @@ def main():
     # Run the bot until the you presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
+    logger.info(botname +" Bot Running")
     updater.idle()
 
 
+def main():
+    """
+    Magic
+    """
+    
+    init_persistent_db()
+    init_volatile_db()
+    bot_routine()
+
+
 if __name__ == "__main__":
-    print("Running " + botname + "...")
     main()
