@@ -12,8 +12,8 @@ RUN apk update && \
     wget https://bootstrap.pypa.io/get-pip.py && \
     python3 get-pip.py && \
     mkdir -p /opt/aenea && \
-    addgroup aenea && \
-    adduser -g aenea -G aenea -h /opt/aenea -D aenea && \
+    addgroup aenea --gid 1001 && \
+    adduser -g aenea -G aenea -h /opt/aenea -D aenea -u 1001 && \
     mkdir -p /opt/aenea/bot/
 # Deploy
 ADD aenea/* /opt/aenea/
