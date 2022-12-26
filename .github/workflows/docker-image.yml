@@ -17,7 +17,7 @@ jobs:
     - name: Login into Dockerhub
       env:
         DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      run: docker login --user elautoestopista --password $DOCKERHUB_TOKEN
+      run: docker login --username elautoestopista --password $DOCKERHUB_TOKEN
   
     - name: Prepare cross-platform build
       run: docker buildx create --name aeneabot --platform linux/amd64,linux/arm64,linux/arm/v7
