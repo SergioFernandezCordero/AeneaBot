@@ -4,6 +4,3 @@ future
 python-telegram-bot==12.4.2
 requests
 urllib3
-pyasn1
-pyasn1_modules
-Rust
