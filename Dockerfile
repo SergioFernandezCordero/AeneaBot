@@ -4,7 +4,7 @@ LABEL maintainer="sergio@fernandezcordero.net"
 
 # Environment and dependencies
 RUN apk update && \
-    apk add build-base bash python3 ca-certificates wget gcc python3-dev musl-dev libffi-dev openssl-dev gcc g++ make zlib-dev bzip2-dev && \
+    apk add build-base bash python3 ca-certificates wget gcc python3-dev musl-dev libffi-dev openssl-dev gcc g++ make zlib-dev bzip2-dev xz-dev && \
     update-ca-certificates && \
     rm -f /var/cache/apk/* && \
     rm /bin/sh && \
