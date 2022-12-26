@@ -1,6 +1,4 @@
-beautifulsoup4
 certifi
-future
 python-telegram-bot==12.4.2
 requests
 urllib3
