@@ -6,4 +6,4 @@ requests
 urllib3
 pyasn1
 pyasn1_modules
-Rust>=1.48.0
+Rust
