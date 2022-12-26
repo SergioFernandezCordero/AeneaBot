@@ -16,13 +16,10 @@ import requests
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
-import sqlite3
-
 # Environment
 token = os.getenv('TOKEN', default=None)
 botname = os.getenv('BOTNAME', default="AeneaBot")
 authuser = os.getenv('AUTHUSER', default="User")
-dbpath = os.getenv('DB_PATH', default="/var/aenea-db")
 loglevel = os.getenv('LOGLEVEL', default="INFO")
 
 # Initialize logging
