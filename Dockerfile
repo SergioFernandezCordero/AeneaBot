@@ -18,6 +18,7 @@ RUN apk update && \
 # Deploy
 ADD aenea/* /opt/aenea/
 RUN chown -R aenea:aenea /opt/aenea && \
+    pip install --upgrade pip && \
     pip install -r /opt/aenea/requirements.txt
 # Run
 USER aenea
