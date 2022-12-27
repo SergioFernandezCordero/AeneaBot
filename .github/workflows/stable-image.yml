@@ -10,12 +10,9 @@ on:
 jobs:
   if_merged:
     if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
 
-    build:
-      runs-on: ubuntu-latest
-
-      steps:
-
+    steps:
       - name: Build qemu dependencies for cross-platform build
         run: sudo apt-get install qemu-user-static
 
