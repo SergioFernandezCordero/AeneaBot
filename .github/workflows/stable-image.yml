@@ -2,20 +2,17 @@ name: Build Stable Image
 
 on:
   pull_request:
-    types: [closed]
-  branches:
-    - 'releases/**'
+    types:
+      - closed
+    branches:
+      - 'releases/**'
     
 jobs:
+  if_merged:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
 
-  build:
-    if_merged:
-      if: github.event.pull_request.merged == true
-
-      runs-on: ubuntu-latest
-
-      steps:
-
+    steps:
       - name: Build qemu dependencies for cross-platform build
         run: sudo apt-get install qemu-user-static
 
