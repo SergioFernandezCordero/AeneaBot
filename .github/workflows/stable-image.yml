@@ -2,7 +2,8 @@ name: Build Stable Image
 
 on:
   pull_request:
-    types: [closed]
+    types:
+      - closed
     branches:
       - 'releases/**'
     
