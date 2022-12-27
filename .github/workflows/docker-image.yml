@@ -3,7 +3,6 @@ name: Build Develop Image
 on:
   pull_request:
     branches: [ "master" ]
-  push
 
 jobs:
 
