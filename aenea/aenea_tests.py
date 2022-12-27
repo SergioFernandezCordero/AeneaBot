@@ -16,6 +16,7 @@ class TestAenea(unittest.TestCase):
         """
         The actual test.
         Any method which starts with ``test_`` will considered as a test case.
+        This is a build test in fact.
         """
         res = ayuda("testbot",5)
         self.assertEqual(res, 120)
