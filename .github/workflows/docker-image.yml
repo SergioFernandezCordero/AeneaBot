@@ -3,6 +3,7 @@ name: Build Develop Image
 on:
   pull_request:
     branches: [ "master" ]
+  push
 
 jobs:
 
@@ -11,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Build info - Branch
+      run: echo ${{ github.ref_name }}
+
     - name: Build qemu dependencies for cross-platform build
       run: sudo apt-get install qemu-user-static
 
