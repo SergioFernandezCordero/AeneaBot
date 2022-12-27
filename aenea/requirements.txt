@@ -1,8 +1,4 @@
-beautifulsoup4
 certifi
-future
-python-telegram-bot==12.4.2
+python-telegram-bot
 requests
 urllib3
-pyasn1
-pyasn1_modules
