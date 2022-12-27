@@ -45,7 +45,7 @@ export DB_PATH="/path/to/db"
 python3 aenea/aenea.py
 ```
 
-#### Building
+#### Manual Building
 
 You can build your Docker images this way:
 
@@ -69,3 +69,18 @@ docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t dockerhub
 docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t dockerhubid/aeneabot:latest --push .
 docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t dockerhubid/aeneabot:release-<version> --push .
 ```
+
+#### CI/CD Building
+
+You can find the current pipelines in .github
+
+## development-image.yml
+
+Everytime you make a push to a branch, an image tagged with "development" will be generated, so you can deploy using minikube. Just ensure imagePullPolicy is set to Always to avoid cache.
+
+## stable-image.yml
+
+When ready to generate a Relase, create a branch "releases/X.XX.XX". In this branch you will merge the branches with the features you've created.
+
+Go to Gihub, create a Release with the release name on the branch (X.XX.XX), and tag it with the same release name. Don't forget to create a Changelog.
+When the Release is published, an image will be created, tagged with the release name and "latest", so you can deploy it to Kubernetes.
