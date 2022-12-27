@@ -76,7 +76,7 @@ You can find the current pipelines in .github
 
 ###### development-image.yml
 
-Everytime you make a push to a branch, an image tagged with "development" will be generated, so you can deploy using minikube. Just ensure imagePullPolicy is set to Always to avoid cache.
+Everytime you make a push to a branch, an image tagged with "development" and a timestamp will be generated, so you can deploy it using minikube. Just ensure imagePullPolicy is set to Always to avoid cache.
 
 ###### stable-image.yml
 
