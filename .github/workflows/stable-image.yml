@@ -13,6 +13,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Release information
+        run: Release ${{ github.event.release.tag_name }} will be generated
+
       - name: Build qemu dependencies for cross-platform build
         run: sudo apt-get install qemu-user-static
 
