@@ -74,11 +74,11 @@ docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t dockerhub
 
 You can find the current pipelines in .github
 
-## development-image.yml
+###### development-image.yml
 
 Everytime you make a push to a branch, an image tagged with "development" will be generated, so you can deploy using minikube. Just ensure imagePullPolicy is set to Always to avoid cache.
 
-## stable-image.yml
+###### stable-image.yml
 
 When ready to generate a Relase, create a branch "releases/X.XX.XX". In this branch you will merge the branches with the features you've created.
 
