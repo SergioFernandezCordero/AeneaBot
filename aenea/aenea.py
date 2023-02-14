@@ -14,7 +14,7 @@ import os
 import re
 import requests
 
-from telegram.ext import Updater, CommandHandler, MessageHandler, filters
+from telegram.ext import Application, Updater, CommandHandler, MessageHandler, filters
 
 # Environment
 token = os.getenv('TOKEN', default=None)
@@ -138,32 +138,29 @@ def bot_routine():
         logger.error("TOKEN is not defined. Please, configure your token first")
         sys.exit(1)
 
-    updater = Updater(token, use_context=True)
-
-    dispatcher = updater.dispatcher
+    application = Application.builder().token(token).build()
 
     # on different commands - answer in Telegram
-    dispatcher.add_handler(CommandHandler("help", help))
-    dispatcher.add_handler(CommandHandler("dice", dice, pass_args=False))
-    dispatcher.add_handler(CommandHandler("ruok", ruok, pass_args=False))
-    dispatcher.add_handler(CommandHandler("man", man, pass_args=True))
+    application.add_handler(CommandHandler("help", help))
+    application.add_handler(CommandHandler("dice", dice, pass_args=False))
+    application.add_handler(CommandHandler("ruok", ruok, pass_args=False))
+    application.add_handler(CommandHandler("man", man, pass_args=True))
     # failover handler
     unknown_handler = MessageHandler(Filters.command, unknown)
-    dispatcher.add_handler(unknown_handler)
+    application.add_handler(unknown_handler)
     # chatgpt when no command
-    dispatcher.add_handler(MessageHandler(Filters.text, handle_message))
+    application.add_handler(MessageHandler(Filters.text, handle_message))
 
     # log all errors
-    dispatcher.add_error_handler(error)
+    application.add_error_handler(error)
 
     # Start the Bot
-    updater.start_polling()
+    application.run_polling()
 
     # Run the bot until the you presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
     logger.info(botname +" Bot Running")
-    updater.idle()
 
 
 def main():
