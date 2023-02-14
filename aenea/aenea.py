@@ -14,7 +14,7 @@ import os
 import re
 import requests
 
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, MessageHandler, filters
 
 # Environment
 token = os.getenv('TOKEN', default=None)
@@ -120,6 +120,14 @@ def unknown(update, context):
     sendmessage(update, context, "Sorry, I didn't understand that command.")
     logger.debug('Invalid command')
 
+
+def handle_message(update, context):
+    # Use the OpenAI API to generate a response based on the user's input
+    response = generate_response_with_openai(update.message.text)
+    # Send the response back to the user
+    context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+
+
 def bot_routine():
     """
     Runs the bot logic
@@ -142,6 +150,8 @@ def bot_routine():
     # failover handler
     unknown_handler = MessageHandler(Filters.command, unknown)
     dispatcher.add_handler(unknown_handler)
+    # chatgpt when no command
+    dispatcher.add_handler(MessageHandler(Filters.text, handle_message))
 
     # log all errors
     dispatcher.add_error_handler(error)
