@@ -14,7 +14,8 @@ import os
 import re
 import requests
 
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram import Update
+from telegram.ext import Application, Updater, ContextTypes, CommandHandler, MessageHandler, filters
 
 # Environment
 token = os.getenv('TOKEN', default=None)
@@ -37,10 +38,6 @@ def error(update, context):
     logger.warning('Update "%s" caused error "%s"' % (update, context.error))
 
 
-def sendmessage(update, context, message):
-    context.bot.send_message(chat_id=update.effective_chat.id, text=message)
-
-
 def auth(update, context):
     """
     Stupid auth function. dafuq
@@ -50,40 +47,38 @@ def auth(update, context):
         logger.debug('User "%s" allowed' % user)
         return True
     else:
-        auth_message = 'You are not allowed to use this bot, ' + str(user)
-        sendmessage(update, context, auth_message)
         logger.warning('User "%s" not allowed' % user)
         return False
 
 
 # Telegram CommandHandlers
 
-def help(update, context):
+async def help(update, context):
     """
     Help Function
     """
     if auth(update, context):
         help_message = "Hi, I'm " + botname + ", service bot. Not any function defined yet."
-        sendmessage(update, context, help_message)
+        await update.effective_message.reply_text(help_message)
 
 
-def ruok(update, context):
+async def ruok(update, context):
     """
     Authenticatin Function
     """
     if auth(update, context):
-        sendmessage(update, context, "imok")
+        await update.effective_message.reply_text("imok")
 
 
-def dice(update, context):
+async def dice(update, context):
     """
     Run a 6 sided dice
     """
     if auth(update, context):
-        sendmessage(update, context, random.randrange(1, 6))
+        await update.effective_message.reply_text(random.randrange(1, 6))
 
 
-def man(update, context):
+async def man(update, context):
     """
     Lookup a command for selected distro and SO into manpages
     """
@@ -110,15 +105,24 @@ def man(update, context):
             logger.error('Failed to connect to MAN service: "%s"' % requesterror)
     else:
         message = "Usage: /man command distro(optional, defaults to Debian)"
-    sendmessage(update, context, message)
+    await update.effective_message.reply_text(message)
 
 
-def unknown(update, context):
+async def unknown(update, context):
     """
     Fallback MessageHandler for unrecognized commands
     """
-    sendmessage(update, context, "Sorry, I didn't understand that command.")
+    await update.effective_message.reply_text("Sorry, I didn't understand that command.")
     logger.debug('Invalid command')
+
+
+async def handle_message(update, context):
+    # Use the OpenAI API to generate a response based on the user's input
+    # response = generate_response_with_openai(update.message.text)
+    response = "Cannot give information about that topic"
+    # Send the response back to the user
+    await update.effective_message.reply_text(response)
+
 
 def bot_routine():
     """
@@ -130,30 +134,29 @@ def bot_routine():
         logger.error("TOKEN is not defined. Please, configure your token first")
         sys.exit(1)
 
-    updater = Updater(token, use_context=True)
-
-    dispatcher = updater.dispatcher
+    application = Application.builder().token(token).build()
 
     # on different commands - answer in Telegram
-    dispatcher.add_handler(CommandHandler("help", help))
-    dispatcher.add_handler(CommandHandler("dice", dice, pass_args=False))
-    dispatcher.add_handler(CommandHandler("ruok", ruok, pass_args=False))
-    dispatcher.add_handler(CommandHandler("man", man, pass_args=True))
+    application.add_handler(CommandHandler("help", help))
+    application.add_handler(CommandHandler("dice", dice))
+    application.add_handler(CommandHandler("ruok", ruok))
+    application.add_handler(CommandHandler("man", man))
     # failover handler
-    unknown_handler = MessageHandler(Filters.command, unknown)
-    dispatcher.add_handler(unknown_handler)
+    unknown_handler = MessageHandler(filters.COMMAND, unknown)
+    application.add_handler(unknown_handler)
+    # chatgpt when no command
+    application.add_handler(MessageHandler(filters.TEXT, handle_message))
 
     # log all errors
-    dispatcher.add_error_handler(error)
+    application.add_error_handler(error)
 
     # Start the Bot
-    updater.start_polling()
+    application.run_polling()
 
     # Run the bot until the you presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
     logger.info(botname +" Bot Running")
-    updater.idle()
 
 
 def main():
