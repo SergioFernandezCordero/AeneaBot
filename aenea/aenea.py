@@ -138,7 +138,7 @@ def bot_routine():
         logger.error("TOKEN is not defined. Please, configure your token first")
         sys.exit(1)
 
-    updater = Updater(token, use_context=True)
+    updater = Updater(token=token, use_context=True)
 
     dispatcher = updater.dispatcher
 
