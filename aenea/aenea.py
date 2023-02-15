@@ -122,6 +122,7 @@ async def unknown(update, context):
 # ChatGPT Integration
 def openAI(prompt):
     # Make the request to the OpenAI API
+    logger.info('Calling CHATGPT API')
     response = requests.post(
         'https://api.openai.com/v1/completions',
         headers={'Authorization': f'Bearer {chatgpttoken}'},
@@ -135,9 +136,10 @@ def openAI(prompt):
 
 async def handle_message(update, context):
     # Use the OpenAI API to generate a response based on the user's input
-    response = openAI(update.message.text)
+    response = openAI(f"{chatgptperson}{update.message.text}")
     # Send the response back to the user
-    await update.effective_message.reply_text(response)
+    message = "CHATGPT: " + response
+    await update.effective_message.reply_text(message)
 
 
 def bot_routine():
