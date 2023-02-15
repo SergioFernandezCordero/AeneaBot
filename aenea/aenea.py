@@ -22,6 +22,9 @@ token = os.getenv('TOKEN', default=None)
 botname = os.getenv('BOTNAME', default="AeneaBot")
 authuser = os.getenv('AUTHUSER', default="User")
 loglevel = os.getenv('LOGLEVEL', default="INFO")
+chatgpttoken = os.getenv('CHATGPTTOKEN', default=None)
+chatgptperson = os.getenv('CHATGPTPERSON', default="Professional")
+chatgptmodel = os.getenv('CHATGPTMODEL', default="text-davinci-003")
 
 # Initialize logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -64,7 +67,7 @@ async def help(update, context):
 
 async def ruok(update, context):
     """
-    Authenticatin Function
+    Authentication Function
     """
     if auth(update, context):
         await update.effective_message.reply_text("imok")
@@ -112,16 +115,31 @@ async def unknown(update, context):
     """
     Fallback MessageHandler for unrecognized commands
     """
-    await update.effective_message.reply_text("Sorry, I didn't understand that command.")
+    await update.effective_message.reply_text("Sorry, I didn't understand.")
     logger.debug('Invalid command')
+
+
+# ChatGPT Integration
+def openAI(prompt):
+    # Make the request to the OpenAI API
+    logger.info('Calling CHATGPT API')
+    response = requests.post(
+        'https://api.openai.com/v1/completions',
+        headers={'Authorization': f'Bearer {chatgpttoken}'},
+        json={'model': chatgptmodel, 'prompt': prompt, 'temperature': 0.4, 'max_tokens': 200}
+    )
+
+    result = response.json()
+    final_result = ''.join(choice['text'] for choice in result['choices'])
+    return final_result
 
 
 async def handle_message(update, context):
     # Use the OpenAI API to generate a response based on the user's input
-    # response = generate_response_with_openai(update.message.text)
-    response = "Cannot give information about that topic"
+    response = openAI(f"{chatgptperson}{update.message.text}")
     # Send the response back to the user
-    await update.effective_message.reply_text(response)
+    message = "CHATGPT: " + response
+    await update.effective_message.reply_text(message)
 
 
 def bot_routine():
@@ -130,9 +148,13 @@ def bot_routine():
     """
 
     logger.info("Running " + botname + "...")
+    # If no Telegram Token is defined, we cannot work
     if token is None:
         logger.error("TOKEN is not defined. Please, configure your token first")
         sys.exit(1)
+    # If no ChatGPT Token is used, only defined responses here.
+    if chatgpttoken is None:
+        logger.warning("CHATGPTTOKEN is not defined. Bot will only answer to the commands and functiones specified in this code")
 
     application = Application.builder().token(token).build()
 
@@ -156,7 +178,7 @@ def bot_routine():
     # Run the bot until the you presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
-    logger.info(botname +" Bot Running")
+    logger.info(botname +" Bot Stopped")
 
 
 def main():
