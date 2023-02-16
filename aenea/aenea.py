@@ -126,7 +126,7 @@ def openAI(prompt):
     response = requests.post(
         'https://api.openai.com/v1/completions',
         headers={'Authorization': f'Bearer {chatgpttoken}'},
-        json={'model': chatgptmodel, 'prompt': prompt, 'temperature': 0.4, 'max_tokens': 200}
+        json={'model': chatgptmodel, 'prompt': prompt, 'temperature': 0.4, 'max_tokens': 200, 'user': authuser}
     )
 
     result = response.json()
@@ -136,7 +136,7 @@ def openAI(prompt):
 
 async def handle_message(update, context):
     # Use the OpenAI API to generate a response based on the user's input
-    response = openAI(f"{chatgptperson}{update.message.text}")
+    response = openAI(update.message.text)
     # Send the response back to the user
     message = "CHATGPT: " + response
     await update.effective_message.reply_text(message)
