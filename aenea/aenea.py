@@ -13,6 +13,7 @@ import os
 
 import re
 import requests
+import uuid
 
 from telegram import Update
 from telegram.ext import Application, Updater, ContextTypes, CommandHandler, MessageHandler, filters
@@ -39,7 +40,6 @@ def error(update, context):
     Logs execution errors
     """
     logger.warning('Update "%s" caused error "%s"' % (update, context.error))
-
 
 def auth(update, context):
     """
@@ -122,15 +122,30 @@ async def unknown(update, context):
 # ChatGPT Integration
 def openAI(prompt):
     # Make the request to the OpenAI API
-    logger.info('Calling CHATGPT API')
-    response = requests.post(
-        'https://api.openai.com/v1/completions',
-        headers={'Authorization': f'Bearer {chatgpttoken}'},
-        json={'model': chatgptmodel, 'prompt': prompt, 'temperature': 0.4, 'max_tokens': 200, 'user': authuser}
-    )
+    # Patch to deal with OpenAI error like, in my case, quota errors.
+    # TODO: Put this in a generic error with uuid function
+    service = "OPENAI"
+    try:
+        logger.info('Calling OpenAI API')
+        response = requests.post(
+            'https://api.openai.com/v1/completions',
+            headers={'Authorization': f'Bearer {chatgpttoken}'},
+            json={'model': chatgptmodel, 'prompt': prompt, 'temperature': 0.4, 'max_tokens': 200, 'user': authuser}
+        )
 
-    result = response.json()
-    final_result = ''.join(choice['text'] for choice in result['choices'])
+        result = response.json()
+        result_code = response.status_code
+        if result_code !="200":
+            raise RuntimeError
+        else:
+            final_result = ''.join(choice['text'] for choice in result['choices'])
+    except RuntimeError:
+        trace_uuid= uuid.uuid1()
+        api_error_type = (result['error']['type'])
+        api_error_message =  (result['error']['message'])
+        error_message = api_error_type+": "+api_error_message
+        logger.error('%s uuid: %s - %s' % (service, trace_uuid, error_message))
+        final_result = 'An error has occurred, UUID %s' % (trace_uuid)
     return final_result
 
 
@@ -138,7 +153,7 @@ async def handle_message(update, context):
     # Use the OpenAI API to generate a response based on the user's input
     response = openAI(update.message.text)
     # Send the response back to the user
-    message = "CHATGPT: " + response
+    message = response
     await update.effective_message.reply_text(message)
 
 
