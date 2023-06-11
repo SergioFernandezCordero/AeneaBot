@@ -13,7 +13,7 @@ jobs:
       run: echo ${{ github.ref_name }}
 
     - name: Build qemu dependencies for cross-platform build
-      run: sudo apt-get install qemu-user-static
+      run: sudo apt update && sudo apt-get install qemu-user-static
 
     - name: Login into Dockerhub
       env:

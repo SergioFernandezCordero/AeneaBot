@@ -13,6 +13,7 @@ import os
 
 import re
 import requests
+import uuid
 
 from telegram import Update
 from telegram.ext import Application, Updater, ContextTypes, CommandHandler, MessageHandler, filters
@@ -29,7 +30,6 @@ chatgptmodel = os.getenv('CHATGPTMODEL', default="text-davinci-003")
 # Initialize logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=loglevel)
-
 logger = logging.getLogger(__name__)
 
 # Tools
@@ -38,54 +38,61 @@ def error(update, context):
     """
     Logs execution errors
     """
-    logger.warning('Update "%s" caused error "%s"' % (update, context.error))
-
+    service = "TELEGRAM"
+    trace_uuid= uuid.uuid1()
+    logger.warning('%s uuid: %s - Update "%s" caused error "%s"' % (service, trace_uuid, update, context.error))
 
 def auth(update, context):
     """
     Stupid auth function. dafuq
     """
+    service = "AUTH"
+    trace_uuid= uuid.uuid1()
     user = update.message.from_user.username  # Received username
     if user == authuser:
-        logger.debug('User "%s" allowed' % user)
-        return True
+        error_message = 'User "%s" allowed' % user
+        logger.debug('%s uuid: %s - %s' % (service, trace_uuid, error_message))
+        auth = True
     else:
-        logger.warning('User "%s" not allowed' % user)
-        return False
-
+        error_message = 'User "%s" not allowed' % user
+        logger.warning('%s uuid: %s - %s' % (service, trace_uuid, error_message))
+        auth = False
+    return auth, error_message
+    
 
 # Telegram CommandHandlers
-
-async def help(update, context):
-    """
-    Help Function
-    """
-    if auth(update, context):
-        help_message = "Hi, I'm " + botname + ", service bot. Not any function defined yet."
-        await update.effective_message.reply_text(help_message)
-
 
 async def ruok(update, context):
     """
     Authentication Function
     """
-    if auth(update, context):
-        await update.effective_message.reply_text("imok")
+    auth_try= auth(update, context)
+    if auth_try[0] == True:
+        message = "imok"
+    elif auth_try[0] == False:
+        message = auth_try[1]
+    await update.effective_message.reply_text(message)
 
 
 async def dice(update, context):
     """
     Run a 6 sided dice
     """
-    if auth(update, context):
-        await update.effective_message.reply_text(random.randrange(1, 6))
+    auth_try= auth(update, context)
+    if auth_try[0] == True:
+        message = random.randrange(1, 6)
+    elif auth_try[0] == False:
+        message = auth_try[1]
+    await update.effective_message.reply_text(message)
 
 
 async def man(update, context):
     """
     Lookup a command for selected distro and SO into manpages
     """
-    if auth(update, context) and 0 < len(context.args) < 3:
+    service = "MAN"
+    auth_try= auth(update, context)
+    if auth_try[0] == True and 0 < len(context.args) < 3:
         command = context.args[0]
         command = command.lower()
         if len(context.args) == 2:
@@ -104,10 +111,14 @@ async def man(update, context):
                 message = "Command " + command + " for " + distro + "\n" + manpage.text[62:500] + \
                           "\n Full page on: \n" + manpage.url
         except requests.exceptions.RequestException as requesterror:
-            message = "MAN service unavailable!"
-            logger.error('Failed to connect to MAN service: "%s"' % requesterror)
-    else:
-        message = "Usage: /man command distro(optional, defaults to Debian)"
+            trace_uuid= uuid.uuid1()
+            error_message = "MAN service unavailable at " + man_url
+            logger.error('%s uuid: %s - %s' % (service, trace_uuid, error_message))
+            message = 'An error has occurred, UUID %s' % (trace_uuid)
+    elif auth_try[0] == False:
+            message = auth_try[1]
+    elif len(context.args) != 2:
+            message = "Usage: /man command distro(optional, defaults to Debian)"
     await update.effective_message.reply_text(message)
 
 
@@ -115,30 +126,53 @@ async def unknown(update, context):
     """
     Fallback MessageHandler for unrecognized commands
     """
-    await update.effective_message.reply_text("Sorry, I didn't understand.")
-    logger.debug('Invalid command')
+    auth_try= auth(update, context)
+    if auth_try[0] == True:
+        message = "Sorry, I didn't understand."
+    elif auth_try[0] == False:
+        message = auth_try[1]
+    await update.effective_message.reply_text(message)
 
 
 # ChatGPT Integration
 def openAI(prompt):
     # Make the request to the OpenAI API
-    logger.info('Calling CHATGPT API')
-    response = requests.post(
-        'https://api.openai.com/v1/completions',
-        headers={'Authorization': f'Bearer {chatgpttoken}'},
-        json={'model': chatgptmodel, 'prompt': prompt, 'temperature': 0.4, 'max_tokens': 200, 'user': authuser}
-    )
+    # Patch to deal with OpenAI error like, in my case, quota errors.
+    # TODO: Put this in a generic error with uuid function
+    service = "OPENAI"
+    try:
+        logger.info('Calling OpenAI API')
+        response = requests.post(
+            'https://api.openai.com/v1/completions',
+            headers={'Authorization': f'Bearer {chatgpttoken}'},
+            json={'model': chatgptmodel, 'prompt': prompt, 'temperature': 0.4, 'max_tokens': 200, 'user': authuser}
+        )
 
-    result = response.json()
-    final_result = ''.join(choice['text'] for choice in result['choices'])
+        result = response.json()
+        result_code = response.status_code
+        if result_code !="200":
+            raise RuntimeError
+        else:
+            final_result = ''.join(choice['text'] for choice in result['choices'])
+    except RuntimeError:
+        trace_uuid= uuid.uuid1()
+        api_error_type = (result['error']['type'])
+        api_error_message =  (result['error']['message'])
+        error_message = api_error_type+": "+api_error_message
+        logger.error('%s uuid: %s - %s' % (service, trace_uuid, error_message))
+        final_result = 'An error has occurred, UUID %s' % (trace_uuid)
     return final_result
 
 
 async def handle_message(update, context):
     # Use the OpenAI API to generate a response based on the user's input
-    response = openAI(update.message.text)
-    # Send the response back to the user
-    message = "CHATGPT: " + response
+    auth_try= auth(update, context)
+    if auth_try[0] == True:
+        response = openAI(update.message.text)
+        # Send the response back to the user
+        message = response
+    elif auth_try[0] == False:
+        message = auth_try[1]
     await update.effective_message.reply_text(message)
 
 
@@ -159,7 +193,6 @@ def bot_routine():
     application = Application.builder().token(token).build()
 
     # on different commands - answer in Telegram
-    application.add_handler(CommandHandler("help", help))
     application.add_handler(CommandHandler("dice", dice))
     application.add_handler(CommandHandler("ruok", ruok))
     application.add_handler(CommandHandler("man", man))
