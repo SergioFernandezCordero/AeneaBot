@@ -30,7 +30,6 @@ chatgptmodel = os.getenv('CHATGPTMODEL', default="text-davinci-003")
 # Initialize logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=loglevel)
-
 logger = logging.getLogger(__name__)
 
 # Tools
@@ -39,7 +38,9 @@ def error(update, context):
     """
     Logs execution errors
     """
-    logger.warning('Update "%s" caused error "%s"' % (update, context.error))
+    service = "TELEGRAM"
+    trace_uuid= uuid.uuid1()
+    logger.warning('%s uuid: %s - Update "%s" caused error "%s"' % (service, trace_uuid, update, context.error))
 
 def auth(update, context):
     """
@@ -61,29 +62,28 @@ def auth(update, context):
 
 # Telegram CommandHandlers
 
-async def help(update, context):
-    """
-    Help Function
-    """
-    if auth(update, context):
-        help_message = "Hi, I'm " + botname + ", service bot. Not any function defined yet."
-        await update.effective_message.reply_text(help_message)
-
-
 async def ruok(update, context):
     """
     Authentication Function
     """
-    if auth(update, context):
-        await update.effective_message.reply_text("imok")
+    auth_try= auth(update, context)
+    if auth_try[0] == True:
+        message = "imok"
+    elif auth_try[0] == False:
+        message = auth_try[1]
+    await update.effective_message.reply_text(message)
 
 
 async def dice(update, context):
     """
     Run a 6 sided dice
     """
-    if auth(update, context):
-        await update.effective_message.reply_text(random.randrange(1, 6))
+    auth_try= auth(update, context)
+    if auth_try[0] == True:
+        message = random.randrange(1, 6)
+    elif auth_try[0] == False:
+        message = auth_try[1]
+    await update.effective_message.reply_text(message)
 
 
 async def man(update, context):
@@ -126,8 +126,12 @@ async def unknown(update, context):
     """
     Fallback MessageHandler for unrecognized commands
     """
-    await update.effective_message.reply_text("Sorry, I didn't understand.")
-    logger.debug('Invalid command')
+    auth_try= auth(update, context)
+    if auth_try[0] == True:
+        message = "Sorry, I didn't understand."
+    elif auth_try[0] == False:
+        message = auth_try[1]
+    await update.effective_message.reply_text(message)
 
 
 # ChatGPT Integration
@@ -167,7 +171,7 @@ async def handle_message(update, context):
         response = openAI(update.message.text)
         # Send the response back to the user
         message = response
-    else:
+    elif auth_try[0] == False:
         message = auth_try[1]
     await update.effective_message.reply_text(message)
 
@@ -189,7 +193,6 @@ def bot_routine():
     application = Application.builder().token(token).build()
 
     # on different commands - answer in Telegram
-    application.add_handler(CommandHandler("help", help))
     application.add_handler(CommandHandler("dice", dice))
     application.add_handler(CommandHandler("ruok", ruok))
     application.add_handler(CommandHandler("man", man))
