@@ -119,7 +119,6 @@ async def man(update, context):
             message = auth_try[1]
     elif len(context.args) != 2:
             message = "Usage: /man command distro(optional, defaults to Debian)"
-
     await update.effective_message.reply_text(message)
 
 
@@ -163,11 +162,14 @@ def openAI(prompt):
 
 async def handle_message(update, context):
     # Use the OpenAI API to generate a response based on the user's input
-    if auth(update, context):
+    auth_try= auth(update, context)
+    if auth_try[0] == True:
         response = openAI(update.message.text)
         # Send the response back to the user
         message = response
-        await update.effective_message.reply_text(message)
+    else:
+        message = auth_try[1]
+    await update.effective_message.reply_text(message)
 
 
 def bot_routine():
