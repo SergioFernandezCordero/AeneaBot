@@ -45,14 +45,19 @@ def auth(update, context):
     """
     Stupid auth function. dafuq
     """
+    service = "AUTH"
+    trace_uuid= uuid.uuid1()
     user = update.message.from_user.username  # Received username
     if user == authuser:
-        logger.debug('User "%s" allowed' % user)
-        return True
+        error_message = 'User "%s" allowed' % user
+        logger.debug('%s uuid: %s - %s' % (service, trace_uuid, error_message))
+        auth = True
     else:
-        logger.warning('User "%s" not allowed' % user)
-        return False
-
+        error_message = 'User "%s" not allowed' % user
+        logger.warning('%s uuid: %s - %s' % (service, trace_uuid, error_message))
+        auth = False
+    return auth, error_message
+    
 
 # Telegram CommandHandlers
 
@@ -85,7 +90,9 @@ async def man(update, context):
     """
     Lookup a command for selected distro and SO into manpages
     """
-    if auth(update, context) and 0 < len(context.args) < 3:
+    service = "MAN"
+    auth_try= auth(update, context)
+    if auth_try[0] == True and 0 < len(context.args) < 3:
         command = context.args[0]
         command = command.lower()
         if len(context.args) == 2:
@@ -104,10 +111,15 @@ async def man(update, context):
                 message = "Command " + command + " for " + distro + "\n" + manpage.text[62:500] + \
                           "\n Full page on: \n" + manpage.url
         except requests.exceptions.RequestException as requesterror:
-            message = "MAN service unavailable!"
-            logger.error('Failed to connect to MAN service: "%s"' % requesterror)
-    else:
-        message = "Usage: /man command distro(optional, defaults to Debian)"
+            trace_uuid= uuid.uuid1()
+            error_message = "MAN service unavailable at " + man_url
+            logger.error('%s uuid: %s - %s' % (service, trace_uuid, error_message))
+            message = 'An error has occurred, UUID %s' % (trace_uuid)
+    elif auth_try[0] == False:
+            message = auth_try[1]
+    elif len(context.args) != 2:
+            message = "Usage: /man command distro(optional, defaults to Debian)"
+
     await update.effective_message.reply_text(message)
 
 
@@ -151,10 +163,11 @@ def openAI(prompt):
 
 async def handle_message(update, context):
     # Use the OpenAI API to generate a response based on the user's input
-    response = openAI(update.message.text)
-    # Send the response back to the user
-    message = response
-    await update.effective_message.reply_text(message)
+    if auth(update, context):
+        response = openAI(update.message.text)
+        # Send the response back to the user
+        message = response
+        await update.effective_message.reply_text(message)
 
 
 def bot_routine():
