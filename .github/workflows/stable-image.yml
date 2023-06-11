@@ -17,7 +17,7 @@ jobs:
         run: echo "Release ${{ github.event.release.tag_name }} will be generated"
 
       - name: Build qemu dependencies for cross-platform build
-        run: sudo apt-get install qemu-user-static
+        run: sudo apt-get update && sudo apt-get install qemu-user-static
 
       - name: Login into Dockerhub
         env:
