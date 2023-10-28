@@ -151,9 +151,6 @@ def bot_routine():
     # Run the bot until the you presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
-    #
-    # Gracefully close the database connection
-    aeneasql.close_sqlite_database(aeneadb)
     config.logger.info(config.botname +" Bot Stopped")
 
 

@@ -41,7 +41,7 @@ class TheValet:
 
     def list_objects(self):
         stmt = sql_list_parking_objects
-        return [x for x in self.conn.execute(stmt)]
+        return self.conn.execute(stmt)
     
     def clear_object(self, item_text):
         stmt = sql_clear_parking_object
@@ -100,8 +100,12 @@ async def list(update,context):
     if auth_try[0] == True:
         try:
             # Get values
+            message = []
             rawmessage = valet.list_objects()
-            message = "{}, {}, {}".format(*rawmessage)
+            message.append('This is a list of the objects currently in the parking:\n')
+            for row in rawmessage.fetchall():
+                message.append('| ' + str(row[0]) + ' | ' + row[2] + ' | ' + row[1] + ' |')
+            message =  "\n".join(message)
         except:
             config.logger.error('Unable to list parked objects')
             message == 'Unable to list parked objects'
