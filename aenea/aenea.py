@@ -74,13 +74,33 @@ def create_sqlite_connection(db_file):
             conn = sqlite3.connect(db_file)
             logger.info(sqlite3.version + ' initialization successful')
         except Error as e:
-            logger.error('Unable to initialize SQLITE:' + str(e) )
+            logger.error('Unable to initialize SQLITE: ' + str(e) )
         finally:
             if conn:
                 conn.close()
     else:
         logger.error('Unable to initialize SQLITE: Path ' + db_file + ' is unavailable.' )
+    return conn
 
+def create_table(conn, create_table_sql):
+    """ create a table from the create_table_sql statement
+    :param conn: Connection object
+    :param create_table_sql: a CREATE TABLE statement
+    :return:
+    """
+    try:
+        c = conn.cursor()
+        c.execute(create_table_sql)
+    except Error as e:
+        logger.error("Error creating table: " + str(e))
+
+# Tables definition
+
+# Parking
+sql_create_parking_table = """ CREATE TABLE IF NOT EXISTS parking (
+                                        object text NOT NULL,
+                                        add_date text
+                                    ); """
             
 # Telegram CommandHandlers
 
@@ -212,8 +232,15 @@ def bot_routine():
     if chatgpttoken is None:
         logger.warning("CHATGPTTOKEN is not defined. Bot will only answer to the commands and functiones specified in this code")
 
-    # Initialize SQLite Database Connection
-    create_sqlite_connection(sqlitepath + "/aenea.db")
+    ########################################
+    # Initialize SQLite Database Connection#
+    ########################################
+    #Initialize databse connection
+    aeneadb = create_sqlite_connection(sqlitepath + "/aenea.db")
+
+    #Parking table nitialization
+    logger.info('Initializing PARKING table')
+    create_table(aeneadb, sql_create_parking_table)
 
     application = Application.builder().token(token).build()
 
