@@ -16,7 +16,6 @@ from telegram.ext import Application, Updater, ContextTypes, CommandHandler, Mes
 
 import modules.initconfig as config
 import modules.security as security
-import modules.aeneasql as aeneasql
 import modules.parking as parking
 import modules.chatgpt as chatgpt
 
@@ -119,18 +118,24 @@ def bot_routine():
     if config.chatgpttoken is None:
         config.logger.warning("CHATGPTTOKEN is not defined. Bot will only answer to the commands and functiones specified in this code")
 
-    #########################################
-    # Initialize SQLite Database Connection #
-    #########################################
-    #Initialize databse connection
-    #aeneadb = aeneasql.create_sqlite_database(config.sqlitepath + "/aenea.db")
-
     application = Application.builder().token(config.token).build()
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("dice", dice))
     application.add_handler(CommandHandler("ruok", ruok))
     application.add_handler(CommandHandler("man", man))
+
+    ##################
+    # PARKING MODULE #
+    ##################
+    # Deploy Parking module DB
+    parking.prepare_parking_db()
+    # Parking commands
+    application.add_handler(CommandHandler("park", parking.park))
+    application.add_handler(CommandHandler("list", parking.list))
+    application.add_handler(CommandHandler("clear", parking.clear))
+    application.add_handler(CommandHandler("clearall", parking.clearall))
+
     # failover handler
     unknown_handler = MessageHandler(filters.COMMAND, unknown)
     application.add_handler(unknown_handler)
@@ -146,6 +151,9 @@ def bot_routine():
     # Run the bot until the you presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
+    #
+    # Gracefully close the database connection
+    aeneasql.close_sqlite_database(aeneadb)
     config.logger.info(config.botname +" Bot Stopped")
 
 
