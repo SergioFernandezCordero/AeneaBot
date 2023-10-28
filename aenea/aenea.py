@@ -15,6 +15,9 @@ import re
 import requests
 import uuid
 
+import sqlite3
+from sqlite3 import Error
+
 from telegram import Update
 from telegram.ext import Application, Updater, ContextTypes, CommandHandler, MessageHandler, filters
 
@@ -26,6 +29,7 @@ loglevel = os.getenv('LOGLEVEL', default="INFO")
 chatgpttoken = os.getenv('CHATGPTTOKEN', default=None)
 chatgptperson = os.getenv('CHATGPTPERSON', default="Professional")
 chatgptmodel = os.getenv('CHATGPTMODEL', default="text-davinci-003")
+sqlitepath = os.getenv('SQLITEPATH', default="sqlite")
 
 # Initialize logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -59,7 +63,25 @@ def auth(update, context):
         auth = False
     return auth, error_message
     
+# Database manager
 
+def create_sqlite_connection(db_file):
+    """ create a database connection to a SQLite database """
+    conn = None
+    logger.info('Initializing SQLITE database on '+ db_file)
+    if os.path.exists(sqlitepath) and os.path.isdir(sqlitepath):
+        try:
+            conn = sqlite3.connect(db_file)
+            logger.info(sqlite3.version + ' initialization successful')
+        except Error as e:
+            logger.error('Unable to initialize SQLITE:' + e )
+        finally:
+            if conn:
+                conn.close()
+    else:
+        logger.error('Unable to initialize SQLITE: Path ' + db_file + ' is unavailable.' )
+
+            
 # Telegram CommandHandlers
 
 async def ruok(update, context):
@@ -189,6 +211,9 @@ def bot_routine():
     # If no ChatGPT Token is used, only defined responses here.
     if chatgpttoken is None:
         logger.warning("CHATGPTTOKEN is not defined. Bot will only answer to the commands and functiones specified in this code")
+
+    # Initialize SQLite Database Connection
+    create_sqlite_connection(sqlitepath + "/aenea.db")
 
     application = Application.builder().token(token).build()
 
