@@ -64,6 +64,7 @@ def auth(update, context):
     return auth, error_message
     
 # Database manager
+# Initialization
 
 def create_sqlite_connection(db_file):
     """ create a database connection to a SQLite database """
@@ -75,12 +76,18 @@ def create_sqlite_connection(db_file):
             logger.info(sqlite3.version + ' initialization successful')
         except Error as e:
             logger.error('Unable to initialize SQLITE: ' + str(e) )
-        finally:
-            if conn:
-                conn.close()
     else:
         logger.error('Unable to initialize SQLITE: Path ' + db_file + ' is unavailable.' )
     return conn
+
+
+def close_sqlite_connection(conn):
+    try:
+        if conn:
+            conn.close()
+    except Error as e:
+        logger.error('Cannot close connection ' + conn + ':' + str(e))
+
 
 def create_table(conn, create_table_sql):
     """ create a table from the create_table_sql statement
@@ -237,10 +244,11 @@ def bot_routine():
     ########################################
     #Initialize databse connection
     aeneadb = create_sqlite_connection(sqlitepath + "/aenea.db")
-
     #Parking table nitialization
     logger.info('Initializing PARKING table')
     create_table(aeneadb, sql_create_parking_table)
+    # Close Database
+    close_sqlite_connection(aeneadb)
 
     application = Application.builder().token(token).build()
 
