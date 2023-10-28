@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+"""
+Security - Authentication utils
+"""
+
 import uuid
 
 import modules.initconfig as config
