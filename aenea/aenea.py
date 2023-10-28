@@ -3,7 +3,6 @@
 #
 """
 Aenea - Service bot from ElAutoestopista
-Based on work "AstroobeerBot" from ResetReboot
 """
 
 import sys
@@ -15,13 +14,11 @@ import uuid
 from telegram import Update
 from telegram.ext import Application, Updater, ContextTypes, CommandHandler, MessageHandler, filters
 
-
-# Import custom modules
-
 import modules.initconfig as config
 import modules.aeneasql as aeneasql
 import modules.parking as parking
 import modules.chatgpt as chatgpt
+
 
 # Tools
 

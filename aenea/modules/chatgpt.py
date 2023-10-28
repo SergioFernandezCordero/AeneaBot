@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+"""
+chatgpt - Resources to allow Aeneabot contact with ChatGPT
+"""
+
 import requests
 import uuid
 import modules.initconfig as config

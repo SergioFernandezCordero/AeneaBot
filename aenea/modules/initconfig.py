@@ -3,7 +3,6 @@
 #
 """
 initconfig - Initial Configuration modules
-Based on work "AstroobeerBot" from ResetReboot
 """
 
 import logging
