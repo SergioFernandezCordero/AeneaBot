@@ -2,4 +2,3 @@ certifi
 python-telegram-bot
 requests
 urllib3
-apsw==3.43.2.0
