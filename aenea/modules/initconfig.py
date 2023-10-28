@@ -8,6 +8,7 @@ initconfig - Initial Configuration modules
 import logging
 import os
 
+
 # Environment
 token = os.getenv('TOKEN', default=None)
 botname = os.getenv('BOTNAME', default="AeneaBot")

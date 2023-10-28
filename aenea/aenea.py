@@ -15,6 +15,7 @@ from telegram import Update
 from telegram.ext import Application, Updater, ContextTypes, CommandHandler, MessageHandler, filters
 
 import modules.initconfig as config
+import modules.security as security
 import modules.aeneasql as aeneasql
 import modules.parking as parking
 import modules.chatgpt as chatgpt
@@ -30,31 +31,13 @@ def error(update, context):
     trace_uuid= uuid.uuid1()
     config.logger.warning('%s uuid: %s - Update "%s" caused error "%s"' % (service, trace_uuid, update, context.error))
 
-def auth(update, context):
-    """
-    Stupid auth function. dafuq
-    """
-    service = "AUTH"
-    trace_uuid= uuid.uuid1()
-    user = update.message.from_user.username  # Received username
-    if user == config.authuser:
-        error_message = 'User "%s" allowed' % user
-        config.logger.debug('%s uuid: %s - %s' % (service, trace_uuid, error_message))
-        auth = True
-    else:
-        error_message = 'User "%s" not allowed' % user
-        config.logger.warning('%s uuid: %s - %s' % (service, trace_uuid, error_message))
-        auth = False
-    return auth, error_message
-
-
 # Telegram CommandHandlers
 
 async def ruok(update, context):
     """
     Authentication Function
     """
-    auth_try= auth(update, context)
+    auth_try= security.auth(update, context)
     if auth_try[0] == True:
         message = "imok"
     elif auth_try[0] == False:
@@ -66,7 +49,7 @@ async def dice(update, context):
     """
     Run a 6 sided dice
     """
-    auth_try= auth(update, context)
+    auth_try= security.auth(update, context)
     if auth_try[0] == True:
         message = random.randrange(1, 6)
     elif auth_try[0] == False:
@@ -79,7 +62,7 @@ async def man(update, context):
     Lookup a command for selected distro and SO into manpages
     """
     service = "MAN"
-    auth_try= auth(update, context)
+    auth_try= security.auth(update, context)
     if auth_try[0] == True and 0 < len(context.args) < 3:
         command = context.args[0]
         command = command.lower()
@@ -114,7 +97,7 @@ async def unknown(update, context):
     """
     Fallback MessageHandler for unrecognized commands
     """
-    auth_try= auth(update, context)
+    auth_try= security.auth(update, context)
     if auth_try[0] == True:
         message = "Sorry, I didn't understand."
     elif auth_try[0] == False:

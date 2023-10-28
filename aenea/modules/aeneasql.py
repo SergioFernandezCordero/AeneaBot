@@ -5,7 +5,6 @@
 AeneaSQL - Tools to work with SQLite
 """
 import os
-
 import sqlite3
 from sqlite3 import Error
 

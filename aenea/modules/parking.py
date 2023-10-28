@@ -7,6 +7,7 @@ Parking - Tools for Parking funtionality
 
 import modules.initconfig as config
 import modules.aeneasql as aeneasql
+import modules.security as security
 
 # Parking
 sql_create_parking_table = """ CREATE TABLE IF NOT EXISTS parking (

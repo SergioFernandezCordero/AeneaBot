@@ -7,7 +7,10 @@ chatgpt - Resources to allow Aeneabot contact with ChatGPT
 
 import requests
 import uuid
+
+
 import modules.initconfig as config
+import modules.security as security
 
 
 # ChatGPT Integration
@@ -42,7 +45,7 @@ def openAI(prompt):
 
 async def handle_message(update, context):
     # Use the OpenAI API to generate a response based on the user's input
-    auth_try= config.auth(update, context)
+    auth_try= security.auth(update, context)
     if auth_try[0] == True:
         response = openAI(update.message.text)
         # Send the response back to the user
