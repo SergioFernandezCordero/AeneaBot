@@ -20,40 +20,58 @@ sql_create_parking_table = """ CREATE TABLE IF NOT EXISTS parking (
                                     ); """
 sql_create_parking_query = """INSERT INTO parking VALUES(?,?);"""
 sql_list_parking_objects = """SELECT rowid,object,add_date FROM parking ORDER BY add_date"""
-sql_clear_parking_object = """DELETE FROM items WHERE rowid = (?)"""
+sql_clear_parking_object = """DELETE FROM parking WHERE rowid = (?)"""
 sql_clear_parking = """DELETE FROM parking"""
 
 class TheValet:
     def __init__(self, dbname):
-        self.dbname = dbname
-        self.conn = sqlite3.connect(dbname)
+        try:
+            self.dbname = dbname
+            self.conn = sqlite3.connect(dbname)
+        except Error as e:
+            return e
+
 
     def setup(self):
-        stmt = sql_create_parking_table
-        self.conn.execute(stmt)
-        self.conn.commit()
+        try:
+            stmt = sql_create_parking_table
+            self.conn.execute(stmt)
+            self.conn.commit()
+        except Error as e:
+            return e
 
     def park_object(self, item_text, date):
-        stmt = sql_create_parking_query
-        args = (item_text, date)
-        self.conn.execute(stmt, args)
-        self.conn.commit()
+        try:
+            stmt = sql_create_parking_query
+            args = (item_text, date)
+            self.conn.execute(stmt, args)
+            self.conn.commit()
+        except Error as e:
+            return e
 
     def list_objects(self):
-        stmt = sql_list_parking_objects
-        return self.conn.execute(stmt)
+        try:
+            stmt = sql_list_parking_objects
+            return self.conn.execute(stmt)
+        except Error as e:
+            return e
     
-    def clear_object(self, item_text):
-        stmt = sql_clear_parking_object
-        args = (item_text, )
-        self.conn.execute(stmt, args)
-        self.conn.commit()
+    def clear_object(self, rowid):
+        try:
+            stmt = sql_clear_parking_object
+            args = (rowid)
+            self.conn.execute(stmt, args)
+            self.conn.commit()
+        except Error as e:
+            return e
 
-    def empty_parking(self, item_text):
-        stmt = sql_clear_parking
-        args = (item_text, )
-        self.conn.execute(stmt, args)
-        self.conn.commit()
+    def empty_parking(self):
+        try:
+            stmt = sql_clear_parking
+            self.conn.execute(stmt)
+            self.conn.commit()
+        except Error as e:
+            return e
 
 # Let's give the keys to the Valet
 
@@ -73,22 +91,25 @@ def prepare_parking_db():
     config.logger.info('Initializing Parking table')
     try:
         valet.setup
-    except:
-        config.logger.error('Unable to initialize Parking table')
+    except Error as e:
+        config.logger.error('Unable to initialize Parking table: ' + str(e))
 
 async def park(update,context):
     """ Inserts a new Object in the Parking """
     auth_try= security.auth(update, context)
     if auth_try[0] == True:
-        try:
-            # Insert values
-            object = " ".join(context.args)
-            current_date = datetime.today().strftime('%d-%m-%Y')
-            valet.park_object(object,current_date)
-            message = "Parked!"
-        except:
-            config.logger.error('Unable to park object')
-            message = "Unable to park item"
+        if len(context.args) > 0:
+            try:
+                # Insert values
+                object = " ".join(context.args)
+                current_date = datetime.today().strftime('%d-%m-%Y')
+                valet.park_object(object,current_date)
+                message = "Parked!"
+            except Error as e:
+                config.logger.error('Unable to park object: ' + str(e))
+                message = "Unable to park item"
+        else:
+            message = "Nothing to park!"
     elif auth_try[0] == False:
         message = auth_try[1]
     await update.effective_message.reply_text(message)
@@ -102,21 +123,51 @@ async def list(update,context):
             # Get values
             message = []
             rawmessage = valet.list_objects()
-            message.append('This is a list of the objects currently in the parking:\n')
-            for row in rawmessage.fetchall():
-                message.append('| ' + str(row[0]) + ' | ' + row[2] + ' | ' + row[1] + ' |')
-            message =  "\n".join(message)
-        except:
-            config.logger.error('Unable to list parked objects')
+            if rawmessage.rowcount > 0:
+                message.append('This is a list of the objects currently in the parking:\n')
+                for row in rawmessage.fetchall():
+                    message.append('| ' + str(row[0]) + ' | ' + row[2] + ' | ' + row[1] + ' |')
+                message =  "\n".join(message)
+            else:
+                message = "Parking is currently empty."
+        except Error as e:
+            config.logger.error('Unable to list parked objects: ' + str(e))
             message == 'Unable to list parked objects'
     elif auth_try[0] == False:
         message = auth_try[1]
     await update.effective_message.reply_text(message)
 
-async def clear():
+async def clear(update,context):
     """ Clears an object from the Parking """
-    print()
-
-def clearall():
+    auth_try= security.auth(update, context)
+    if auth_try[0] == True:
+        if len(context.args) > 0:
+            try:
+                # Insert values
+                rowid = context.args[0]
+                valet.clear_object(rowid)
+                message = "Object " + rowid + " cleared from Parking!"
+            except Error as e:
+                config.logger.error('Unable to clear item from the Parking: ' + str(e))
+                message = "Unable to clear item from the Parking"
+        else:
+            message = "Nothing to clear!"
+    elif auth_try[0] == False:
+        message = auth_try[1]
+    await update.effective_message.reply_text(message)
+    
+async def clearall(update,context):
     """ Clear all object in the Parking """
-    print()
+    auth_try= security.auth(update, context)
+    if auth_try[0] == True:
+        try:
+            # Insert values
+            valet.empty_parking()
+            config.logger.info('Parking emptied successfully.')
+            message = "Parking emptied! See you soon!"
+        except Error as e:
+            config.logger.error('Unable to empty the Parking: ' + str(e))
+            message = "Unable to empty the Parking"
+    elif auth_try[0] == False:
+        message = auth_try[1]
+    await update.effective_message.reply_text(message)

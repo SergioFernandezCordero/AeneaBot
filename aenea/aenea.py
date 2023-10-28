@@ -132,9 +132,9 @@ def bot_routine():
     parking.prepare_parking_db()
     # Parking commands
     application.add_handler(CommandHandler("park", parking.park))
-    application.add_handler(CommandHandler("list", parking.list))
-    application.add_handler(CommandHandler("clear", parking.clear))
-    application.add_handler(CommandHandler("clearall", parking.clearall))
+    application.add_handler(CommandHandler("list_parking", parking.list))
+    application.add_handler(CommandHandler("clear_object", parking.clear))
+    application.add_handler(CommandHandler("clear_parking", parking.clearall))
 
     # failover handler
     unknown_handler = MessageHandler(filters.COMMAND, unknown)
