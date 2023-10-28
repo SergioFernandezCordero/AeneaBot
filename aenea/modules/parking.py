@@ -13,13 +13,15 @@ from datetime import datetime
 import modules.initconfig as config
 import modules.security as security
 
-# Parking
+# Parking Queries
 sql_create_parking_table = """ CREATE TABLE IF NOT EXISTS parking (
                                         object text NOT NULL,
                                         add_date text
                                     ); """
-sql_create_parking_query = '''INSERT INTO parking VALUES(?,?); '''
-
+sql_create_parking_query = """INSERT INTO parking VALUES(?,?);"""
+sql_list_parking_objects = """SELECT rowid,object,add_date FROM parking ORDER BY add_date"""
+sql_clear_parking_object = """DELETE FROM items WHERE rowid = (?)"""
+sql_clear_parking = """DELETE FROM parking"""
 
 class TheValet:
     def __init__(self, dbname):
@@ -38,17 +40,17 @@ class TheValet:
         self.conn.commit()
 
     def list_objects(self):
-        stmt = "SELECT description FROM items"
-        return [x[0] for x in self.conn.execute(stmt)]
+        stmt = sql_list_parking_objects
+        return [x for x in self.conn.execute(stmt)]
     
     def clear_object(self, item_text):
-        stmt = "DELETE FROM items WHERE rowid = (?)"
+        stmt = sql_clear_parking_object
         args = (item_text, )
         self.conn.execute(stmt, args)
         self.conn.commit()
 
     def empty_parking(self, item_text):
-        stmt = "DELETE FROM parking"
+        stmt = sql_clear_parking
         args = (item_text, )
         self.conn.execute(stmt, args)
         self.conn.commit()
@@ -85,7 +87,7 @@ async def park(update,context):
             valet.park_object(object,current_date)
             message = "Parked!"
         except:
-            config.logger.error('Unable to park item')
+            config.logger.error('Unable to park object')
             message = "Unable to park item"
     elif auth_try[0] == False:
         message = auth_try[1]
@@ -97,12 +99,12 @@ async def list(update,context):
     auth_try= security.auth(update, context)
     if auth_try[0] == True:
         try:
-            # Insert values
-            object = " ".join(context.args)
-            valet.list_objects(object)
+            # Get values
+            rawmessage = valet.list_objects()
+            message = "{}, {}, {}".format(*rawmessage)
         except:
-            config.logger.error('Unable to park item')
-            message == str(e)
+            config.logger.error('Unable to list parked objects')
+            message == 'Unable to list parked objects'
     elif auth_try[0] == False:
         message = auth_try[1]
     await update.effective_message.reply_text(message)
