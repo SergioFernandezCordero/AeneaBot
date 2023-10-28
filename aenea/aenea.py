@@ -29,7 +29,7 @@ loglevel = os.getenv('LOGLEVEL', default="INFO")
 chatgpttoken = os.getenv('CHATGPTTOKEN', default=None)
 chatgptperson = os.getenv('CHATGPTPERSON', default="Professional")
 chatgptmodel = os.getenv('CHATGPTMODEL', default="text-davinci-003")
-sqlitepath = os.getenv('SQLITEPATH', default="sqlite")
+sqlitepath = os.getenv('AENEADB', default="/sqlite")
 
 # Initialize logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -74,7 +74,7 @@ def create_sqlite_connection(db_file):
             conn = sqlite3.connect(db_file)
             logger.info(sqlite3.version + ' initialization successful')
         except Error as e:
-            logger.error('Unable to initialize SQLITE:' + e )
+            logger.error('Unable to initialize SQLITE:' + str(e) )
         finally:
             if conn:
                 conn.close()
