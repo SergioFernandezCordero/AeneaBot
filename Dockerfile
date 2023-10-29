@@ -15,6 +15,7 @@ RUN apk update && \
     mkdir -p /opt/aenea/bot/
 # Deploy
 ADD aenea/* /opt/aenea/
+ADD aenea/modules/* /opt/aenea/modules/
 RUN chown -R aenea:aenea /opt/aenea && \
     pip3 install -r /opt/aenea/requirements.txt
 # Run
