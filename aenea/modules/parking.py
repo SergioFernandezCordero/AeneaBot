@@ -14,10 +14,10 @@ import modules.initconfig as config
 import modules.security as security
 
 # Parking Queries
-sql_create_parking_table = """ CREATE TABLE IF NOT EXISTS parking (
+sql_create_parking_table = """CREATE TABLE IF NOT EXISTS parking (
                                         object text NOT NULL,
-                                        add_date text
-                                    ); """
+                                         add_date text
+                                    );"""
 sql_create_parking_query = """INSERT INTO parking VALUES(?,?);"""
 sql_list_parking_objects = """SELECT rowid,object,add_date FROM parking ORDER BY add_date"""
 sql_clear_parking_object = """DELETE FROM parking WHERE rowid = (?)"""
@@ -94,9 +94,9 @@ else:
 
 def prepare_parking_db():
     """ Initializes Parking table if doesn't exists """
-    config.logger.info('Initializing Parking table')
     try:
-        valet.setup
+        valet.setup()
+        config.logger.info('Initialized Parking table')
     except:
         config.logger.error('Unable to initialize Parking table')
 
@@ -113,13 +113,13 @@ async def park(update,context):
     auth_try= security.auth(update, context)
     if auth_try[0] == True:
         if len(context.args) > 0:
+            # Insert values
+            object = " ".join(context.args)
+            current_date = datetime.today().strftime('%d-%m-%Y')
             try:
-                # Insert values
-                object = " ".join(context.args)
-                current_date = datetime.today().strftime('%d-%m-%Y')
-                if valet.park_object(object,current_date):
-                    config.logger.info('Object successfully parked')
-                    message = "Parked!"
+                valet.park_object(object,current_date)
+                config.logger.info('Object successfully parked')
+                message = "Parked!"
             except:
                 config.logger.error('Unable to park object')
                 message = "Unable to park item"
@@ -143,7 +143,6 @@ async def list(update,context):
                 if len(objects) > 0:
                     message.append('This is a list of the objects currently in the parking:\n')
                     for row in objects:
-                        print(row[0])
                         message.append('| ' + str(row[0]) + ' | ' + row[2] + ' | ' + row[1] + ' |')
                     message =  "\n".join(message)
                 else:
@@ -161,11 +160,11 @@ async def clear(update,context):
     auth_try= security.auth(update, context)
     if auth_try[0] == True:
         if len(context.args) > 0:
+            # Insert values
+            rowid = context.args[0]
             try:
-                # Insert values
-                rowid = context.args[0]
-                if valet.clear_object(rowid):
-                    message = "Object " + rowid + " cleared from Parking!"
+                valet.clear_object(rowid)
+                message = "Object " + rowid + " cleared from Parking!"
             except:
                 config.logger.error('Unable to clear item from the Parking')
                 message = "Unable to clear item from the Parking"
@@ -180,10 +179,9 @@ async def clearall(update,context):
     auth_try= security.auth(update, context)
     if auth_try[0] == True:
         try:
-            # Insert values
-            if valet.empty_parking():
-                config.logger.info('Parking emptied successfully.')
-                message = "Parking emptied! See you soon!"
+            valet.empty_parking()
+            config.logger.info('Parking emptied successfully.')
+            message = "Parking emptied! See you soon!"
         except:
             config.logger.error('Unable to empty the Parking')
             message = "Unable to empty the Parking"
