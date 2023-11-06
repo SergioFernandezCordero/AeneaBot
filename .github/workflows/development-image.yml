@@ -12,6 +12,12 @@ jobs:
     - name: Build info - Branch
       run: echo ${{ github.ref_name }}
 
+    - name: Get tag or commit id
+      id: get-version-id
+      uses: iawia002/get-tag-or-commit-id@v1
+      with:
+        length: 7
+
     - name: Build qemu dependencies for cross-platform build
       run: sudo apt update && sudo apt-get install qemu-user-static
 
@@ -27,4 +33,4 @@ jobs:
     - name: Build aeneabot project
       run: docker buildx use aeneabot &&
            docker buildx inspect --bootstrap &&
-           docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t elautoestopista/aeneabot:$(date +%s) -t elautoestopista/aeneabot:develop --push .
+           docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t elautoestopista/aeneabot:develop-${{ steps.get-version-id.outputs.id }} -t elautoestopista/aeneabot:develop -t elautoestopista/aeneabot:latest --push .
