@@ -37,14 +37,14 @@ async def health(update, context):
     Run a healthcheck
     """
     auth_try= security.auth(update, context)
+    message_list = []
     if auth_try[0] == True:
-        message == []
-        message = message.append(parking.health(update,context))
-        message = message.append("False error 1")
-        message = message.append("False error 2")
+        message_list.append(parking.health(update,context))
+        message_list.append("False error 1")
+        message_list.append("False error 2")
     elif auth_try[0] == False:
-        message = auth_try[1]
-    message == "\n".join(message)
+        message_list.append(auth_try[1])
+    message = "\n".join(message_list)
     await update.effective_message.reply_text(message)
 
 
