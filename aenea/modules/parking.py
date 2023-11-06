@@ -18,6 +18,7 @@ sql_create_parking_table = """CREATE TABLE IF NOT EXISTS parking (
                                         object text NOT NULL,
                                          add_date text
                                     );"""
+sql_check_parking_exists = """SELECT name FROM sqlite_master WHERE type='table' AND name='parking'"""
 sql_create_parking_query = """INSERT INTO parking VALUES(?,?);"""
 sql_list_parking_objects = """SELECT rowid,object,add_date FROM parking ORDER BY add_date"""
 sql_clear_parking_object = """DELETE FROM parking WHERE rowid = (?)"""
@@ -25,6 +26,7 @@ sql_clear_parking = """DELETE FROM parking"""
 
 class TheValet:
     def __init__(self, dbname):
+        """ Open connection to local database file. Create it if doesn't exist """
         try:
             self.dbname = dbname
             self.conn = sqlite3.connect(dbname)
@@ -32,9 +34,21 @@ class TheValet:
             config.logger.error('Unable to conect Database: ' + str(e))
 
     def closedb(self):
+        """ Close connection to local database """
         self.conn.close()
 
+    def check(self):
+        """ Run some checks to determine the correct working of the database """
+        try:
+            stmt = sql_check_parking_exists
+            self.conn.execute(stmt)
+            self.conn.commit()
+        except Error as e:
+            config.logger.error('Parking table not available: ' + str(e))
+ 
+
     def setup(self):
+        """ Initialize Parking database at startup creating table parking if it doesn't exists """
         try:
             stmt = sql_create_parking_table
             self.conn.execute(stmt)
@@ -43,6 +57,7 @@ class TheValet:
             config.logger.error('Unable to create Parking table: ' + str(e))
 
     def park_object(self, item_text, date):
+        """ Insert and object in parking table based on user input """
         try:
             stmt = sql_create_parking_query
             args = (item_text, date,)
@@ -52,6 +67,7 @@ class TheValet:
             config.logger.error('Unable to Park object: ' + str(e))
 
     def list_objects(self):
+        """ List all objects in the parking table. Return a tuple """
         try:
             stmt = sql_list_parking_objects
             self.conn.commit()
@@ -61,6 +77,7 @@ class TheValet:
 
     
     def clear_object(self, rowid):
+        """ Delete an object in the parking table based on input """
         try:
             stmt = sql_clear_parking_object
             args = (rowid,)
@@ -71,6 +88,7 @@ class TheValet:
 
 
     def empty_parking(self):
+        """ Deletes al rows in parking table """
         try:
             stmt = sql_clear_parking
             self.conn.execute(stmt)
@@ -91,6 +109,19 @@ if os.path.exists(config.sqlitepath) and os.path.isdir(config.sqlitepath):
         config.logger.error('Unable to initialize PARKING')
 else:
     config.logger.error('Unable to initialize PARKING: Path ' + dbname + ' is unavailable.' )
+
+def health():
+    """ Runs healthcheck """
+    try:
+        try:
+            valet.check()
+            message = "\U00002705  Parking table is available"
+        except:
+            message = "\U0000274C  Parking table doesn't exists"
+    except:
+        config.logger.error('Unknown error accessing database')
+        message = "\U0001F605  Unknown error accessing database"
+    return message
 
 def prepare_parking_db():
     """ Initializes Parking table if doesn't exists """
