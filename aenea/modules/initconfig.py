@@ -31,11 +31,11 @@ def url_checker(url,codes):
 		get = requests.get(url)
 		# if the request succeeds 
 		if get.status_code in codes:
-			message = f"{url}: is reachable"
+			message = f"is reachable"
 		else:
-			message = f"{url}: is not reachable, status_code: {get.status_code}"
+			message = f"is NOT reachable with code: {get.status_code}"
 	#Exception
 	except requests.exceptions.RequestException as e:
         # print URL with Errs
-		message = f"{url}: is Not reachable \nErr: {e}"
+		message = f"is NOT reachable \nErr: {e}"
 	return message

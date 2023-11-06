@@ -30,6 +30,15 @@ def error(update, context):
     trace_uuid= uuid.uuid1()
     config.logger.warning('%s uuid: %s - Update "%s" caused error "%s"' % (service, trace_uuid, update, context.error))
 
+def check_telegram():
+    codes = [200]
+    try:
+        message = config.url_checker("https://api.telegram.org/bot"+config.token+"/getMe", codes)
+        message = "\U00002705  Telegram " + message
+    except:
+        message = "\U0000274C  Telegram " + message
+    return message
+
 # Telegram CommandHandlers
 
 async def health(update, context):
@@ -39,9 +48,9 @@ async def health(update, context):
     auth_try= security.auth(update, context)
     message_list = []
     if auth_try[0] == True:
-        message_list.append(parking.health(update,context))
+        message_list.append(parking.health())
         message_list.append(chatgpt.check_chatgpt())
-        message_list.append("False error 2")
+        message_list.append(check_telegram())
     elif auth_try[0] == False:
         message_list.append(auth_try[1])
     message = "\n".join(message_list)

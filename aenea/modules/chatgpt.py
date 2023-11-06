@@ -58,6 +58,7 @@ def check_chatgpt():
     codes = [200, 401]
     try:
         message = config.url_checker("https://api.openai.com/v1/completions", codes)
-        message = "\U00002705  " + message
+        message = "\U00002705  ChatGPT " + message
     except:
-        message = "\U0000274C  " + message
+        message = "\U0000274C  ChatGPT " + message
+    return message

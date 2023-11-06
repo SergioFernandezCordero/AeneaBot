@@ -39,7 +39,6 @@ class TheValet:
 
     def check(self):
         """ Run some checks to determine the correct working of the database """
-        config.logger.info('DATABASE HEALTCHECK REQUESTED')
         try:
             stmt = sql_check_parking_exists
             self.conn.execute(stmt)
@@ -111,7 +110,7 @@ if os.path.exists(config.sqlitepath) and os.path.isdir(config.sqlitepath):
 else:
     config.logger.error('Unable to initialize PARKING: Path ' + dbname + ' is unavailable.' )
 
-def health(update,context):
+def health():
     """ Runs healthcheck """
     try:
         try:
