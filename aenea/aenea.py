@@ -34,7 +34,7 @@ def error(update, context):
 
 async def health(update, context):
     """
-    Authentication Function
+    Run a healthcheck
     """
     auth_try= security.auth(update, context)
     if auth_try[0] == True:

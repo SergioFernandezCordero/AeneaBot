@@ -9,14 +9,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Build info - Branch
-      run: echo ${{ github.ref_name }}
-
     - name: Get tag or commit id
       id: get-version-id
       uses: iawia002/get-tag-or-commit-id@v1
       with:
         length: 7
+
+    - name: Build info - Branch
+      run: echo ${{ github.ref_name }}
+    
+    - name: Build info - Commit
+      run: echo ${{ steps.get-version-id.outputs.id }}
 
     - name: Build qemu dependencies for cross-platform build
       run: sudo apt update && sudo apt-get install qemu-user-static

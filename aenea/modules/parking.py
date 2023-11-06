@@ -44,11 +44,8 @@ class TheValet:
             stmt = sql_check_parking_exists
             self.conn.execute(stmt)
             self.conn.commit()
-            test = "\xF0\x9F\x94\xB5 - Parking table exists"
         except Error as e:
-            test = "\xF0\x9F\x94\xB4 - Parking table doesn't exists"
             config.logger.error('Parking table not available: ' + str(e))
-        return test
  
 
     def setup(self):
@@ -114,14 +111,17 @@ if os.path.exists(config.sqlitepath) and os.path.isdir(config.sqlitepath):
 else:
     config.logger.error('Unable to initialize PARKING: Path ' + dbname + ' is unavailable.' )
 
-async def health(update,context):
+def health(update,context):
     """ Runs healthcheck """
     try:
-        valet.check()
-        message = valet.check.test
+        try:
+            valet.check()
+            message = "\U00002705 - Parking table is available"
+        except:
+            message = "\U0000274C - Parking table doesn't exists"
     except:
         config.logger.error('Unknown error accessing database')
-        message = "\xF0\x9F\x92\x80 - Unknown error accessing database"
+        message = "\U0001F480 - Unknown error accessing database"
     return message
 
 def prepare_parking_db():
