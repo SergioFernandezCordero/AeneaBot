@@ -38,7 +38,7 @@ async def health(update, context):
     """
     auth_try= security.auth(update, context)
     if auth_try[0] == True:
-        parking.health()
+        message = parking.health(update,context)
     elif auth_try[0] == False:
         message = auth_try[1]
     await update.effective_message.reply_text(message)
@@ -122,7 +122,7 @@ def bot_routine():
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("dice", dice))
-    application.add_handler(CommandHandler("ruok", ruok))
+    application.add_handler(CommandHandler("health", health))
     application.add_handler(CommandHandler("man", man))
 
     ##################

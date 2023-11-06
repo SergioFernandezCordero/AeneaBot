@@ -116,16 +116,13 @@ else:
 
 async def health(update,context):
     """ Runs healthcheck """
-    auth_try= security.auth(update, context)
-    if auth_try[0] == True:
-        try:
-            valet.check()
-            message = valet.check.test
-        except:
-            config.logger.error('Unknown error accessing database')
-    elif auth_try[0] == False:
-        message = auth_try[1]
-    await update.effective_message.reply_text(message)
+    try:
+        valet.check()
+        message = valet.check.test
+    except:
+        config.logger.error('Unknown error accessing database')
+        message = "\xF0\x9F\x92\x80 - Unknown error accessing database"
+    return message
 
 def prepare_parking_db():
     """ Initializes Parking table if doesn't exists """
