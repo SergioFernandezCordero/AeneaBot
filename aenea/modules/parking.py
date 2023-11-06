@@ -116,12 +116,12 @@ def health(update,context):
     try:
         try:
             valet.check()
-            message = "\U00002705 - Parking table is available"
+            message = "\U00002705  Parking table is available"
         except:
-            message = "\U0000274C - Parking table doesn't exists"
+            message = "\U0000274C  Parking table doesn't exists"
     except:
         config.logger.error('Unknown error accessing database')
-        message = "\U0001F480 - Unknown error accessing database"
+        message = "\U0001F605  Unknown error accessing database"
     return message
 
 def prepare_parking_db():

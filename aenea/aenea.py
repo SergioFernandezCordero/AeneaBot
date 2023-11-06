@@ -38,9 +38,13 @@ async def health(update, context):
     """
     auth_try= security.auth(update, context)
     if auth_try[0] == True:
-        message = parking.health(update,context)
+        message == []
+        message = message.append(parking.health(update,context))
+        message = message.append("False error 1")
+        message = message.append("False error 2")
     elif auth_try[0] == False:
         message = auth_try[1]
+    message == "\n".join(message)
     await update.effective_message.reply_text(message)
 
 
