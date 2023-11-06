@@ -30,17 +30,30 @@ def error(update, context):
     trace_uuid= uuid.uuid1()
     config.logger.warning('%s uuid: %s - Update "%s" caused error "%s"' % (service, trace_uuid, update, context.error))
 
+def check_telegram():
+    codes = [200]
+    try:
+        message = config.url_checker("https://api.telegram.org/bot"+config.token+"/getMe", codes)
+        message = "\U00002705  Telegram " + message
+    except:
+        message = "\U0000274C  Telegram " + message
+    return message
+
 # Telegram CommandHandlers
 
-async def ruok(update, context):
+async def health(update, context):
     """
-    Authentication Function
+    Run a healthcheck
     """
     auth_try= security.auth(update, context)
+    message_list = []
     if auth_try[0] == True:
-        message = "imok"
+        message_list.append(parking.health())
+        message_list.append(chatgpt.check_chatgpt())
+        message_list.append(check_telegram())
     elif auth_try[0] == False:
-        message = auth_try[1]
+        message_list.append(auth_try[1])
+    message = "\n".join(message_list)
     await update.effective_message.reply_text(message)
 
 
@@ -122,7 +135,7 @@ def bot_routine():
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("dice", dice))
-    application.add_handler(CommandHandler("ruok", ruok))
+    application.add_handler(CommandHandler("health", health))
     application.add_handler(CommandHandler("man", man))
 
     ##################
