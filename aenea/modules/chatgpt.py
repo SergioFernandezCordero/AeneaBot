@@ -53,3 +53,11 @@ async def handle_message(update, context):
     elif auth_try[0] == False:
         message = auth_try[1]
     await update.effective_message.reply_text(message)
+
+def check_chatgpt():
+    codes = [200, 401]
+    try:
+        message = config.url_checker("https://api.openai.com/v1/completions", codes)
+        message = "\U00002705  " + message
+    except:
+        message = "\U0000274C  " + message

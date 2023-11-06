@@ -40,7 +40,7 @@ async def health(update, context):
     message_list = []
     if auth_try[0] == True:
         message_list.append(parking.health(update,context))
-        message_list.append("False error 1")
+        message_list.append(chatgpt.check_chatgpt())
         message_list.append("False error 2")
     elif auth_try[0] == False:
         message_list.append(auth_try[1])
