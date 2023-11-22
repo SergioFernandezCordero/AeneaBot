@@ -15,9 +15,7 @@ token = os.getenv('TOKEN', default=None)
 botname = os.getenv('BOTNAME', default="AeneaBot")
 authuser = os.getenv('AUTHUSER', default="User")
 loglevel = os.getenv('LOGLEVEL', default="INFO")
-chatgpttoken = os.getenv('CHATGPTTOKEN', default=None)
-chatgptperson = os.getenv('CHATGPTPERSON', default="Professional")
-chatgptmodel = os.getenv('CHATGPTMODEL', default="text-davinci-003")
+bardapikey = os.getenv('BARDAPIKEY', default=None)
 sqlitepath = os.getenv('AENEADB', default="/sqlite")
 
 # Initialize logging

@@ -17,7 +17,7 @@ from telegram.ext import Application, Updater, ContextTypes, CommandHandler, Mes
 import modules.initconfig as config
 import modules.security as security
 import modules.parking as parking
-import modules.chatgpt as chatgpt
+import modules.bard as bard
 
 
 # Tools
@@ -45,13 +45,13 @@ async def health(update, context):
     """
     Run a healthcheck
     """
-    auth_try= security.auth(update, context)
+    auth_try = security.auth(update, context)
     message_list = []
-    if auth_try[0] == True:
+    if auth_try[0]:
         message_list.append(parking.health())
-        message_list.append(chatgpt.check_chatgpt())
+        message_list.append(bard.check_googlebard())
         message_list.append(check_telegram())
-    elif auth_try[0] == False:
+    elif not auth_try[0]:
         message_list.append(auth_try[1])
     message = "\n".join(message_list)
     await update.effective_message.reply_text(message)
@@ -61,10 +61,10 @@ async def dice(update, context):
     """
     Run a 6 sided dice
     """
-    auth_try= security.auth(update, context)
-    if auth_try[0] == True:
+    auth_try = security.auth(update, context)
+    if auth_try[0]:
         message = random.randrange(1, 6)
-    elif auth_try[0] == False:
+    elif not auth_try[0]:
         message = auth_try[1]
     await update.effective_message.reply_text(message)
 
@@ -74,7 +74,7 @@ async def man(update, context):
     Lookup a command for selected distro and SO into manpages
     """
     service = "MAN"
-    auth_try= security.auth(update, context)
+    auth_try = security.auth(update, context)
     if auth_try[0] == True and 0 < len(context.args) < 3:
         command = context.args[0]
         command = command.lower()
@@ -94,11 +94,11 @@ async def man(update, context):
                 message = "Command " + command + " for " + distro + "\n" + manpage.text[62:500] + \
                           "\n Full page on: \n" + manpage.url
         except requests.exceptions.RequestException as requesterror:
-            trace_uuid= uuid.uuid1()
+            trace_uuid = uuid.uuid1()
             error_message = "MAN service unavailable at " + man_url
             config.logger.error('%s uuid: %s - %s' % (service, trace_uuid, error_message))
             message = 'An error has occurred, UUID %s' % (trace_uuid)
-    elif auth_try[0] == False:
+    elif not auth_try[0]:
             message = auth_try[1]
     elif len(context.args) != 2:
             message = "Usage: /man command distro(optional, defaults to Debian)"
@@ -110,9 +110,9 @@ async def unknown(update, context):
     Fallback MessageHandler for unrecognized commands
     """
     auth_try= security.auth(update, context)
-    if auth_try[0] == True:
+    if auth_try[0]:
         message = "Sorry, I didn't understand."
-    elif auth_try[0] == False:
+    elif not auth_try[0]:
         message = auth_try[1]
     await update.effective_message.reply_text(message)
 
@@ -128,8 +128,9 @@ def bot_routine():
         config.logger.error("TOKEN is not defined. Please, configure your token first")
         sys.exit(1)
     # If no ChatGPT Token is used, only defined responses here.
-    if config.chatgpttoken is None:
-        config.logger.warning("CHATGPTTOKEN is not defined. Bot will only answer to the commands and functiones specified in this code")
+    if config.bardapikey is None:
+        config.logger.warning("BARDAPIKEY is not defined. Bot will only answer to the commands and functiones "
+                              "specified in this code")
 
     application = Application.builder().token(config.token).build()
 
@@ -153,7 +154,7 @@ def bot_routine():
     unknown_handler = MessageHandler(filters.COMMAND, unknown)
     application.add_handler(unknown_handler)
     # chatgpt when no command
-    application.add_handler(MessageHandler(filters.TEXT, chatgpt.handle_message))
+    application.add_handler(MessageHandler(filters.TEXT, bard.handle_message))
 
     # log all errors
     application.add_error_handler(error)
@@ -161,7 +162,7 @@ def bot_routine():
     # Start the Bot
     application.run_polling()
 
-    # Run the bot until the you presses Ctrl-C or the process receives SIGINT,
+    # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
     # Close database connection gracefully

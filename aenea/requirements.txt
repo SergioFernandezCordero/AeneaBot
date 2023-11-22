@@ -2,3 +2,4 @@ certifi
 python-telegram-bot
 requests
 urllib3
+googlebard
