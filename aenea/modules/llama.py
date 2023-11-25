@@ -7,21 +7,31 @@ llama - Resources to allow Aeneabot contact with sidecar running Ollama
 
 import requests
 import uuid
+import json
 
 
 import modules.initconfig as config
 import modules.security as security
 
 
-# ChatGPT Integration
+def is_json(myjson):
+    # Simple tool to check JSON
+    try:
+        json_object = json.loads(myjson)
+    except ValueError as e:
+        return False
+    return True
+
+
 def ollama(prompt):
     # Make the request to the OLLAMA API
     # TODO: Put this in a generic error with uuid function
     service = "OLLAMA"
     try:
         config.logger.info('Calling OLLAMA API')
+        request_url = config.ollama_url + "/api/generate"
         response = requests.post(
-            config.ollama_url,
+            request_url,
             headers={
                 'Content-Type': f'application/json',
                 'Connection': f'keepalive'
@@ -32,16 +42,19 @@ def ollama(prompt):
                   "stream": 'false'
                 }
         )
-
-        result = response.json()
-        result_code = response.status_code
+        if not is_json(response.json()):
+            result = response.json()
+            result_code = response.status_code
+        else:
+            final_result = "AI interface not ready. Down?"
+            config.logger.error('%s uuid: %s - %s' % (service, final_result))
         if result_code != "200":
             raise RuntimeError
         else:
             final_result = (result['response'])
-            load_duration = (result['load_duration'])
-            sample_duration = (result['sample_duration'])
-            config.logger.info('%s Time spent in load %s - Time spent in generating sample %s' % (load_duration, sample_duration))
+            load_duration = (result['load_duration']/1000000000)
+            sample_duration = (result['sample_duration']/1000000000)
+            config.logger.info('%s Time spent in load %s secs - Time spent in generating sample %s secs' % (load_duration, sample_duration))
     except RuntimeError:
         trace_uuid = uuid.uuid1()
         api_error_message = (result['response'])
