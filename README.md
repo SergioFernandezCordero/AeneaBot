@@ -1,33 +1,41 @@
 # AeneaBot
 
 Your personal Telegram bot with several functions.
+Apart from several commands, all messages will be forwarded to an Ollama API server of your election so you can go full IA!
 
-Based on project [AstroBeerBot](https://github.com/resetreboot/astrobeerbot) from my friend [ResetReboot](https://github.com/resetreboot)
-
-Built with [Python-Telegram-Bot](https://github.com/python-telegram-bot/python-telegram-bot)
+Built with:
+- [Python-Telegram-Bot](https://github.com/python-telegram-bot/python-telegram-bot)
+- Lots of love :)
 
 #### Commands
 
-- /ruok - Status check. Returns "imok" if ok.
-- /dice - Runs a 6 sides dice.
-- /man - Shows "man" page for the specified command. Defaults to Debian distro.(More info [aquí](http://www.polarhome.com/service/man/))
+- /health - Run an active healthcheck. Returns a list of components check and its status
+- /dice - Rolls a 6 sides dice.
+- /man - Search a Linux/Unix command in the man pages. Defaults to Debian distro.(More info [aquí](http://www.polarhome.com/service/man/))
+- /park - Park an object in the Parking (if database is configured SQLite database)
+- /list_parking - List all object currentl in the Parking. Includes its UID and the date they were parked.
+- /clear_object - Removes an object from the Parking. Must specify an object UID
+- /clear_parking - Removes all objects from the Parking.
 
 #### How to run
-Load the following envvars as specified:
-
+You need the following envvars as specified:
+  
   * TOKEN: Telegram bot Token
-  * BOTNAME: Your bot name
-  * AUTHUSER: Username allowed to use the bot (yours) 
-  * LANG: Language for the APIs
-  * DB_PATH: Path for the SQLite3 persistent databse
+  * BOTNAME: Your Telegram bot name. Be creative!
+  * AUTHUSER: Telegram username allowed to use the bot (yours)
+  * LANG: Language for the Telegram APIs
+  * OLLAMA_URL: URL of the Ollama server whith will be used to provide AI. Defaults to the sidecar one (http://localhost:11434).
+  * OLLAMA_MODEL: Name of the model configured in Ollama. By default, "aenea" model is used.
+  * AENEADB: Path for the SQLite3 persistent database. Required for Parking functionality.
   * LOGLEVEL: Log level output. See [python docs](https://docs.python.org/3/howto/logging.html#when-to-use-logging)
-
-For further info see config.example file.
-    
+  
 You can run in a docker container this way:
 ```
 docker run -d --name tu-contenedor elautoestopista/aeneabot:latest -e TOKEN="XXXXX" -e BOTNAME="BotName" -e AUTHUSER="TuUser" -e LANG="es" -e LOGLEVEL="DEBUG" -e DB_PATH="/tmp"
 ```
+
+Also you can run it on Kubernetes. [Here you can see an example](https://github.com/SergioFernandezCordero/ygdrassil-project/blob/master/ansible/roles/kube-apps/templates/aenea.j2) in how you can run it with the AeneaAI sidecar which provides your own AI using Ollama an the orca model.
+
 And that's all! Your bot is up and running. You can add the modifications you want.
 
 #### Development
@@ -40,7 +48,6 @@ export BOTNAME="MyBot"
 export AUTHUSER="MyTelegramUser"
 export LANG="es"
 export LOGLEVEL="DEBUG"
-export DB_PATH="/path/to/db"
 
 python3 aenea/aenea.py
 ```
@@ -76,7 +83,7 @@ You can find the current pipelines in .github
 
 ###### development-image.yml
 
-Everytime you make a push to a branch, an image tagged with "development" and a timestamp will be generated, so you can deploy it using minikube. Just ensure imagePullPolicy is set to Always to avoid cache.
+Everytime you make a push to a branch, an image tagged with "develop" and a timestamp will be generated, so you can deploy it using minikube. Just ensure imagePullPolicy is set to Always to avoid cache.
 
 ###### stable-image.yml
 
