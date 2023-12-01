@@ -79,7 +79,35 @@ def check_ollama():
     codes = [200, 401]
     try:
         message = config.url_checker(config.ollama_url, codes)
-        message = "\U00002705  Ollama " + message
-    except:
-        message = "\U0000274C  Ollama " + message
+        service_url = config.ollama_url + "/api/tags"
+        check_service = requests.get(
+            service_url
+        )
+        check_service.raise_for_status()
+        message_service = "\U00002705  Ollama service is ready"
+    except requests.exceptions.HTTPError as err:
+        message_service = "\U0000274C  Ollama service is not available: " + err
+    except requests.exceptions.Timeout:
+        message_service = "\U0000274C  Ollama service is unreachable: Timeout"
+    except requests.exceptions.RequestException:
+        message_service = "\U0000274C  Ollama service is down"
+    try:
+        model_url = config.ollama_url + "/api/show"
+        check_model = requests.post(
+            model_url,
+            headers={
+                'Content-Type': f'application/json',
+                'Connection': f'keep-alive'
+            },
+            json={
+                 "name": config.ollama_model
+            }
+        )
+        check_model.raise_for_status()
+        message_model = "\U00002705  Ollama model " + config.ollama_model + " is loaded and ready."
+    except requests.exceptions.HTTPError as err:
+        message_model = "\U0000274C  Ollama model " + config.ollama_model + " is not loaded."
+    except requests.exceptions.RequestException as e:
+        message_model = "\U0000274C  Ollama model cannot be checked, Ollama service down or unreachable."
+    message = message_service + "\n" + message_model
     return message
