@@ -17,7 +17,7 @@ RUN apk update && \
 ADD aenea/* /opt/aenea/
 ADD aenea/modules/* /opt/aenea/modules/
 RUN chown -R aenea:aenea /opt/aenea && \
-    pip3 install -r /opt/aenea/requirements.txt
+    pip install -r /opt/aenea/requirements.txt
 # Run
 USER aenea
-CMD python3 /opt/aenea/aenea.py
+ENTRYPOINT ["python3", "/opt/aenea/aenea.py"]
