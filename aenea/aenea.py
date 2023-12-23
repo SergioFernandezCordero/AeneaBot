@@ -47,7 +47,7 @@ async def health(update, context):
     Run a healthcheck
     """
     prometheus.bot_call.inc(1)
-    auth_try= security.auth(update, context)
+    auth_try = security.auth(update, context)
     message_list = []
     if auth_try[0]:
         message_list.append(parking.health())
@@ -66,7 +66,7 @@ async def dice(update, context):
     Run a 6 sided dice
     """
     prometheus.bot_call.inc(1)
-    auth_try= security.auth(update, context)
+    auth_try = security.auth(update, context)
     if auth_try[0]:
         try:
             message = random.randrange(1, 6)
@@ -86,7 +86,7 @@ async def man(update, context):
     """
     prometheus.bot_call.inc(1)
     service = "MAN"
-    auth_try= security.auth(update, context)
+    auth_try = security.auth(update, context)
     if auth_try[0] and 0 < len(context.args) < 3:
         command = context.args[0]
         command = command.lower()
@@ -108,7 +108,7 @@ async def man(update, context):
             prometheus.bot_call_success.inc(1)
         except requests.exceptions.RequestException as requesterror:
             prometheus.bot_call_error.inc(1)
-            trace_uuid= uuid.uuid1()
+            trace_uuid = uuid.uuid1()
             error_message = "MAN service unavailable at " + man_url
             config.logger.error('%s uuid: %s - %s' % (service, trace_uuid, error_message))
             message = 'An error has occurred, UUID %s' % (trace_uuid)
@@ -126,11 +126,11 @@ async def unknown(update, context):
     Fallback MessageHandler for unrecognized commands
     """
     prometheus.bot_call.inc(1)
-    auth_try= security.auth(update, context)
-    if auth_try[0] == True:
+    auth_try = security.auth(update, context)
+    if auth_try[0]:
         prometheus.bot_call_success.inc(1)
         message = "Sorry, I didn't understand."
-    elif auth_try[0] == False:
+    elif not auth_try[0]:
         prometheus.bot_call_error.inc(1)
         message = auth_try[1]
     await update.effective_message.reply_text(message)
