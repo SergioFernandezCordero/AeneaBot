@@ -12,11 +12,13 @@ import json
 
 import modules.initconfig as config
 import modules.security as security
+import modules.prometheus as prometheus
 
 
 def ollama(prompt):
     # Make the request to the OLLAMA API
     # Look, we use a fixed context to try to force all contact as a single conversation
+    prometheus.bot_call.inc(1)
     service = "OLLAMA"
     try:
         config.logger.info('Calling OLLAMA API')
@@ -43,6 +45,7 @@ def ollama(prompt):
                   ],
                 }
         )
+        prometheus.bot_call_success.inc(1)
         print(response.status_code, response.json())
         if response.status_code != 200:
             result = response.json()
@@ -56,6 +59,7 @@ def ollama(prompt):
             total_duration = (result['total_duration']/1000000000)
             config.logger.info('%s request took %s secs in total.' % (service, total_duration))
     except RuntimeError as e:
+        prometheus.bot_call_error.inc(1)
         trace_uuid = uuid.uuid1()
         config.logger.error('%s uuid: %s - %s' % (service, trace_uuid, e))
         final_result = 'AI interface not available. Unexpected error UUID %s' % trace_uuid

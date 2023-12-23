@@ -12,6 +12,8 @@ from datetime import datetime
 
 import modules.initconfig as config
 import modules.security as security
+import modules.prometheus as prometheus
+
 
 # Parking Queries
 sql_create_parking_table = """CREATE TABLE IF NOT EXISTS parking (
@@ -141,6 +143,7 @@ def close_parking_db():
 
 async def park(update,context):
     """ Inserts a new Object in the Parking """
+    prometheus.bot_call.inc(1)
     auth_try= security.auth(update, context)
     if auth_try[0] == True:
         if len(context.args) > 0:
@@ -151,18 +154,23 @@ async def park(update,context):
                 valet.park_object(object,current_date)
                 config.logger.info('Object successfully parked')
                 message = "Parked!"
+                prometheus.bot_call_success.inc(1)
             except:
                 config.logger.error('Unable to park object')
                 message = "Unable to park item"
+                prometheus.bot_call_error.inc(1)
         else:
             message = "Nothing to park!"
+            prometheus.bot_call_success.inc(1)
     elif auth_try[0] == False:
+        prometheus.bot_call_error.inc(1)
         message = auth_try[1]
     await update.effective_message.reply_text(message)
 
 
 async def list(update,context):
     """ Lists a table with all the object in the Parking with its IDs """
+    prometheus.bot_call.inc(1)
     auth_try= security.auth(update, context)
     if auth_try[0] == True:
         try:
@@ -176,18 +184,23 @@ async def list(update,context):
                     for row in objects:
                         message.append('| ' + str(row[0]) + ' | ' + row[2] + ' | ' + row[1] + ' |')
                     message =  "\n".join(message)
+                    prometheus.bot_call_success.inc(1)
                 else:
                     message = "Parking is currently empty."
+                    prometheus.bot_call_success.inc(1)
         except:
+            prometheus.bot_call_error.inc(1)
             config.logger.error('Unable to list parked objects')
             message == message.append('Unable to list parked objects')
             message =  "\n".join(message)
     elif auth_try[0] == False:
+        prometheus.bot_call_error.inc(1)
         message = auth_try[1]
     await update.effective_message.reply_text(message)
 
 async def clear(update,context):
     """ Clears an object from the Parking """
+    prometheus.bot_call.inc(1)
     auth_try= security.auth(update, context)
     if auth_try[0] == True:
         if len(context.args) > 0:
@@ -196,26 +209,34 @@ async def clear(update,context):
             try:
                 valet.clear_object(rowid)
                 message = "Object " + rowid + " cleared from Parking!"
+                prometheus.bot_call_success.inc(1)
             except:
+                prometheus.bot_call_error.inc(1)
                 config.logger.error('Unable to clear item from the Parking')
                 message = "Unable to clear item from the Parking"
         else:
             message = "Nothing to clear!"
+            prometheus.bot_call_success.inc(1)
     elif auth_try[0] == False:
+        prometheus.bot_call_error.inc(1)
         message = auth_try[1]
     await update.effective_message.reply_text(message)
     
 async def clearall(update,context):
     """ Clear all object in the Parking """
+    prometheus.bot_call.inc(1)
     auth_try= security.auth(update, context)
     if auth_try[0] == True:
         try:
             valet.empty_parking()
             config.logger.info('Parking emptied successfully.')
             message = "Parking emptied! See you soon!"
+            prometheus.bot_call_success.inc(1)
         except:
+            prometheus.bot_call_error.inc(1)
             config.logger.error('Unable to empty the Parking')
             message = "Unable to empty the Parking"
     elif auth_try[0] == False:
+        prometheus.bot_call_error.inc(1)
         message = auth_try[1]
     await update.effective_message.reply_text(message)

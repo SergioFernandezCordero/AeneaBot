@@ -16,6 +16,7 @@ from telegram.ext import Application, Updater, ContextTypes, CommandHandler, Mes
 
 import modules.initconfig as config
 import modules.security as security
+import modules.prometheus as prometheus
 import modules.parking as parking
 import modules.llama as llama
 
@@ -45,13 +46,16 @@ async def health(update, context):
     """
     Run a healthcheck
     """
+    prometheus.bot_call.inc(1)
     auth_try= security.auth(update, context)
     message_list = []
     if auth_try[0]:
         message_list.append(parking.health())
         message_list.append(llama.check_ollama())
         message_list.append(check_telegram())
+        prometheus.bot_call_success.inc(1)
     elif not auth_try[0]:
+        prometheus.bot_call_error.inc(1)
         message_list.append(auth_try[1])
     message = "\n".join(message_list)
     await update.effective_message.reply_text(message)
@@ -61,10 +65,17 @@ async def dice(update, context):
     """
     Run a 6 sided dice
     """
+    prometheus.bot_call.inc(1)
     auth_try= security.auth(update, context)
     if auth_try[0]:
-        message = random.randrange(1, 6)
+        try:
+            message = random.randrange(1, 6)
+            prometheus.bot_call_success.inc(1)
+        except:
+            prometheus.bot_call_error.inc(1)
+            message = "Oops! No dice for you today..."
     elif not auth_try[0]:
+        prometheus.bot_call_error.inc(1)
         message = auth_try[1]
     await update.effective_message.reply_text(message)
 
@@ -73,6 +84,7 @@ async def man(update, context):
     """
     Lookup a command for selected distro and SO into manpages
     """
+    prometheus.bot_call.inc(1)
     service = "MAN"
     auth_try= security.auth(update, context)
     if auth_try[0] and 0 < len(context.args) < 3:
@@ -93,14 +105,18 @@ async def man(update, context):
             else:
                 message = "Command " + command + " for " + distro + "\n" + manpage.text[62:500] + \
                           "\n Full page on: \n" + manpage.url
+            prometheus.bot_call_success.inc(1)
         except requests.exceptions.RequestException as requesterror:
+            prometheus.bot_call_error.inc(1)
             trace_uuid= uuid.uuid1()
             error_message = "MAN service unavailable at " + man_url
             config.logger.error('%s uuid: %s - %s' % (service, trace_uuid, error_message))
             message = 'An error has occurred, UUID %s' % (trace_uuid)
     elif not auth_try[0]:
+        prometheus.bot_call_error.inc(1)
         message = auth_try[1]
     elif len(context.args) != 2:
+        prometheus.bot_call_success.inc(1)
         message = "Usage: /man command distro(optional, defaults to Debian)"
     await update.effective_message.reply_text(message)
 
@@ -109,10 +125,13 @@ async def unknown(update, context):
     """
     Fallback MessageHandler for unrecognized commands
     """
+    prometheus.bot_call.inc(1)
     auth_try= security.auth(update, context)
     if auth_try[0] == True:
+        prometheus.bot_call_success.inc(1)
         message = "Sorry, I didn't understand."
     elif auth_try[0] == False:
+        prometheus.bot_call_error.inc(1)
         message = auth_try[1]
     await update.effective_message.reply_text(message)
 
@@ -122,6 +141,7 @@ def bot_routine():
     Runs the bot logic
     """
     config.logger.info("Running " + config.botname + "...")
+    prometheus.aeneabot_build.info({'version': 'TODO', 'stream': 'TODO'})
     # If no Telegram Token is defined, we cannot work
     if config.token is None:
         config.logger.error("TOKEN is not defined. Please, configure your token first")
