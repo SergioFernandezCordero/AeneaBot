@@ -12,12 +12,18 @@ RUN apk update && \
     mkdir -p /opt/aenea && \
     addgroup aenea --gid 1001 && \
     adduser -g aenea -G aenea -h /opt/aenea -D aenea -u 1001 && \
-    mkdir -p /opt/aenea/bot/
+    mkdir -p /opt/aenea/bot/ && \
+    mkdir -p /opt/aenea/venv/
 # Deploy
 ADD aenea/* /opt/aenea/
 ADD aenea/modules/* /opt/aenea/modules/
+ADD aenea/scripts/run_aenea.sh /opt/aenea/
 RUN chown -R aenea:aenea /opt/aenea && \
-    pip install --break-system-packages -r /opt/aenea/requirements.txt
+    chmod +x /opt/aenea/run_aenea.sh && \
+# Using a virtualenv like nice people do
+    python3 -m venv /opt/aenea/venv && \
+    . /opt/aenea/venv/bin/activate && \
+    pip install -r /opt/aenea/requirements.txt
 # Run
 USER aenea
-ENTRYPOINT ["python3", "/opt/aenea/aenea.py"]
+ENTRYPOINT ["/opt/aenea/run_aenea.sh"]
