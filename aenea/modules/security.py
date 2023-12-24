@@ -9,6 +9,7 @@ import uuid
 
 import modules.initconfig as config
 
+
 def auth(update, context):
     """
     Stupid auth function. dafuq
