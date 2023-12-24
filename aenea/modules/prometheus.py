@@ -9,7 +9,7 @@ from prometheus_client import start_http_server, Counter, Summary, Info
 import modules.initconfig as config
 
 # Startup server
-if config.prometheus_enabled:
+if bool(config.prometheus_enabled):
     try:
         start_http_server(config.prometheus_port)
         config.logger.info('Prometheus-exporter up at port ' + str(config.prometheus_port))
