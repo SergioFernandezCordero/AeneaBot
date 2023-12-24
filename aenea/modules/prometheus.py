@@ -11,10 +11,10 @@ import modules.initconfig as config
 # Startup server
 if bool(config.prometheus_enabled):
     try:
-        start_http_server(config.prometheus_port)
+        start_http_server(int(config.prometheus_port))
         config.logger.info('Prometheus-exporter up at port ' + str(config.prometheus_port))
     except:
-        config.logger.error('Unable to run prometheus-exporter at port' + str(config.prometheus_port))
+        config.logger.error('Unable to run prometheus-exporter at port ' + str(config.prometheus_port))
         pass
 
 # Metrics definitions
