@@ -20,8 +20,7 @@ if bool(config.prometheus_enabled):
 # Metrics definitions
 # Configuration settings
 aeneabot_build = Info('aeneabot_build', 'Running version of AeneaBot')
-ollama_model = Info('ollama_model', "Ollama model name")
-ollama_url = Info('ollama_url', "Ollama model URL")
+ollama_info = Info('ollama_model', "Ollama model name")
 # Bot Calls Count
 bot_call = Counter('bot_call_total', 'Bot Calls Total')
 bot_call_success = Counter('bot_call_success', 'Bot Calls resulting in success')
