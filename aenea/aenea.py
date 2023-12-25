@@ -144,7 +144,7 @@ def bot_routine():
     """
     Runs the bot logic
     """
-    config.logger.info("Running " + config.botname + " version " + __version__)
+    config.logger.info("Running " + config.botname + " version " + __version__ + "-" + __stream__)
     prometheus.aeneabot_build.info({'version': __version__, 'stream': __stream__})
     # If no Telegram Token is defined, we cannot work
     if config.token is None:
