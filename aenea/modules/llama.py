@@ -54,12 +54,20 @@ def ollama(prompt):
             config.logger.error('%s uuid: %s - %s' % (service, trace_uuid, api_error_message))
             final_result = 'AI interface not available - %s - UUID %s' % (api_error_message, trace_uuid)
         else:
-            prometheus.bot_call_success.inc(1)
             result = response.json()
             final_result = (result['response'])
             total_duration = (result['total_duration']/1000000000)
+            load_duration = (result['load_duration']/1000000000)
+            eval_duration = (result['eval_duration']/1000000000)
+            prometheus.bot_call_success.inc(1)
+            prometheus.ollama_response_total.observe(total_duration)
+            prometheus.ollama_response_load.observe(load_duration)
+            prometheus.ollama_response_eval.observe(eval_duration)
             config.logger.info('%s request took %s secs in total.' % (service, total_duration))
-    except (RuntimeError, ConnectionError) as e:
+        response_latency = response.elapsed
+        print(response_latency)
+        prometheus.ollama_http_time.observe(response_latency)
+    except (RuntimeError, requests.RequestException) as e:
         prometheus.bot_call_error.inc(1)
         trace_uuid = uuid.uuid1()
         config.logger.error('%s uuid: %s - %s' % (service, trace_uuid, e))
