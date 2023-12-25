@@ -146,6 +146,7 @@ def bot_routine():
     """
     config.logger.info("Running " + config.botname + " version " + __version__ + "-" + __stream__)
     prometheus.aeneabot_build.info({'version': __version__, 'stream': __stream__})
+    prometheus.ollama_info.info({'model': config.ollama_model, 'url': config.ollama_url})
     # If no Telegram Token is defined, we cannot work
     if config.token is None:
         config.logger.error("TOKEN is not defined. Please, configure your token first")
