@@ -5,6 +5,10 @@
 Aenea - Service bot from ElAutoestopista
 """
 
+# Do not change, build system will update on release
+__version__ = '0.0.1'
+__stream__ = 'develop'
+
 import sys
 import random
 import re
@@ -140,8 +144,8 @@ def bot_routine():
     """
     Runs the bot logic
     """
-    config.logger.info("Running " + config.botname + "...")
-    prometheus.aeneabot_build.info({'version': 'TODO', 'stream': 'TODO'})
+    config.logger.info("Running " + config.botname + " version " + __version__ + "-" + __stream__)
+    prometheus.aeneabot_build.info({'version': __version__, 'stream': __stream__})
     # If no Telegram Token is defined, we cannot work
     if config.token is None:
         config.logger.error("TOKEN is not defined. Please, configure your token first")
