@@ -17,7 +17,7 @@ loglevel = os.getenv('LOGLEVEL', default="INFO")
 ollama_url = os.getenv('OLLAMA_URL', default="http://localhost:11434")
 ollama_model = os.getenv('OLLAMA_MODEL', default="aenea")
 sqlitepath = os.getenv('AENEADB', default="/sqlite")
-prometheus_enabled = os.getenv('PROMETHEUS_ENABLE', default="False")
+prometheus_enabled = os.getenv('PROMETHEUS_ENABLE')
 prometheus_port = os.getenv('PROMETHEUS_PORT', default=8000)
 
 # Initialize logging
