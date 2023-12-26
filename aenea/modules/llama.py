@@ -56,14 +56,17 @@ def ollama(prompt):
         else:
             result = response.json()
             final_result = (result['response'])
-            total_duration = (result['total_duration']/1000000000)
-            load_duration = (result['load_duration']/1000000000)
-            eval_duration = (result['eval_duration']/1000000000)
-            prometheus.bot_call_success.inc(1)
-            prometheus.ollama_response_total.observe(total_duration)
-            prometheus.ollama_response_load.observe(load_duration)
-            prometheus.ollama_response_eval.observe(eval_duration)
-            config.logger.info('%s request took %s secs in total.' % (service, total_duration))
+            total_duration = float((result['total_duration']/1000000000))
+            load_duration = float((result['load_duration']/1000000000))
+            eval_duration = float((result['eval_duration']/1000000000))
+            try:
+                prometheus.bot_call_success.inc(1)
+                prometheus.ollama_response_total.observe(total_duration)
+                prometheus.ollama_response_load.observe(load_duration)
+                prometheus.ollama_response_eval.observe(eval_duration)
+            except:
+                config.logger.error('Error in generating prometheus metrics')
+            config.logger.info('%s request took %s secs in total.' % (service, float(total_duration)))
         response_latency = response.elapsed
         print(response_latency)
         prometheus.ollama_http_time.observe(response_latency)
