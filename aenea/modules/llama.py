@@ -66,7 +66,7 @@ def ollama(prompt):
                 prometheus.ollama_response_eval.observe(eval_duration)
             except:
                 config.logger.error('Error in generating prometheus metrics')
-            config.logger.info('%s request took %s secs in total.' % (service, float(total_duration)))
+            config.logger.info('%s request took %s secs in total.' % (service, int(total_duration)))
         response_latency = response.elapsed
         print(response_latency)
         prometheus.ollama_http_time.observe(response_latency)
