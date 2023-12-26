@@ -66,10 +66,7 @@ def ollama(prompt):
                 prometheus.ollama_response_eval.observe(eval_duration)
             except:
                 config.logger.error('Error in generating prometheus metrics')
-            config.logger.info('%s request took %s secs in total.' % (service, float(total_duration)))
-        response_latency = response.elapsed
-        print(response_latency)
-        prometheus.ollama_http_time.observe(response_latency)
+            config.logger.info('%s request took %s secs in total.' % (service, total_duration))
     except (RuntimeError, requests.RequestException) as e:
         prometheus.bot_call_error.inc(1)
         trace_uuid = uuid.uuid1()
