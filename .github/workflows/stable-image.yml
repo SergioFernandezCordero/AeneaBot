@@ -16,6 +16,12 @@ jobs:
       - name: Release information
         run: echo "Release ${{ github.event.release.tag_name }} will be generated"
 
+      - name: Initial cleanup
+        run: sudo rm -rf /usr/share/dotnet
+
+      - name: Check for free space
+        run: df -h
+
       - name: Build qemu dependencies for cross-platform build
         run: sudo apt-get install qemu-user-static
 
@@ -33,4 +39,4 @@ jobs:
             sed -i "0,/__version__/{s/.*__version__.*/__version__ = '${{ github.event.release.tag_name }}'/g}" aenea/aenea.py &&
             sed -i "0,/__stream__/{s/.*__stream__.*/__stream__ = 'stable'/g}" aenea/aenea.py &&
             docker buildx inspect --bootstrap &&
-            docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t elautoestopista/aeneabot:${{ github.event.release.tag_name }} -t elautoestopista/aeneabot:latest-stable --push .
+            docker buildx build --platform linux/amd64 -t elautoestopista/aeneabot:${{ github.event.release.tag_name }} -t elautoestopista/aeneabot:latest-stable --push .
