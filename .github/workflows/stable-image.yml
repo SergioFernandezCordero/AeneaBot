@@ -16,6 +16,12 @@ jobs:
       - name: Release information
         run: echo "Release ${{ github.event.release.tag_name }} will be generated"
 
+      - name: Initial cleanup
+        run: sudo rm -rf /usr/share/dotnet
+
+      - name: Check for free space
+        run: df -h
+
       - name: Build qemu dependencies for cross-platform build
         run: sudo apt-get install qemu-user-static
 
