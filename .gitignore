@@ -10,3 +10,4 @@ pip-selfcheck.json
 config.example
 .idea/*
 __pycache__/*
+venv/*
