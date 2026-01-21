@@ -7,6 +7,7 @@ initconfig - Initial Configuration modules
 
 import logging
 import os
+import sys
 import requests
 import yaml
 from pathlib import Path
@@ -17,7 +18,7 @@ class ConfigLoader:
         self.data = []
 
     @staticmethod
-    def load_config(config_path: str = os.path.dirname(__file__) + "config/config.yml") -> dict:
+    def load_config(config_path: str = os.path.dirname(sys.argv[0]) + "/config/config.yml") -> dict:
         """Load and parse a YAML configuration file."""
         try:
             # Use Path to handle file paths cross-platform
