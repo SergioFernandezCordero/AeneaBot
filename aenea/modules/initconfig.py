@@ -8,17 +8,37 @@ initconfig - Initial Configuration modules
 import logging
 import os
 import requests
+import yaml
+from pathlib import Path
 
-# Environment
-token = os.getenv('TOKEN', default=None)
-botname = os.getenv('BOTNAME', default="AeneaBot")
-authuser = os.getenv('AUTHUSER', default="User")
-loglevel = os.getenv('LOGLEVEL', default="INFO")
-ollama_url = os.getenv('OLLAMA_URL', default="http://localhost:11434")
-ollama_model = os.getenv('OLLAMA_MODEL', default="aenea")
-sqlitepath = os.getenv('AENEADB', default="/sqlite")
-prometheus_enabled = os.getenv('PROMETHEUS_ENABLE')
-prometheus_port = os.getenv('PROMETHEUS_PORT', default=8000)
+
+class ConfigLoader:
+    def __init__(self):
+        self.data = []
+
+    @staticmethod
+    def load_config(config_path: str = "config.yml") -> dict:
+        """Load and parse a YAML configuration file."""
+        try:
+            # Use Path to handle file paths cross-platform
+            with open(Path(config_path), "r") as f:
+                config = yaml.safe_load(f)
+            return config
+        except FileNotFoundError:
+            logger.error(f"Config file not found at: {config_path}")
+            raise RuntimeError(f"Config file not found at: {config_path}")
+        except yaml.YAMLError as e:
+            logger.error(f"Failed to parse YAML: {e}")
+            raise RuntimeError(f"Failed to parse YAML: {e}")
+
+
+# Load configuration file
+configLoad = ConfigLoader()
+configuration = configLoad.load_config()
+
+# Generate variables from config file
+for key in configuration:
+    exec(f"{key} = configuration['{key}']")
 
 # Initialize logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',

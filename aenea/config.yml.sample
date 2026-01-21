@@ -1,0 +1,14 @@
+telegram:
+    token:
+bot:
+    botname:
+    authuser:
+    loglevel:
+ai:
+    ollama_url:
+    ollama_model:
+db:
+    sqlitepath:
+monitoring:
+    prometheus_enabled:
+    prometheus_port:
