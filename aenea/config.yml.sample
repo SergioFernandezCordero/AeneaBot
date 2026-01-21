@@ -1,0 +1,9 @@
+token: "XXXXX"
+botname: "Aenea"
+authuser: "YourTelegramUser"
+loglevel: "INFO/WARN/DEBUG"
+ollama_url: "http://localhost:1234"
+ollama_model: "aenea"
+sqlitepath: "/sqlitedb"
+prometheus_enabled: False
+prometheus_port: 8000

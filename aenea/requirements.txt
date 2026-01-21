@@ -3,3 +3,4 @@ python-telegram-bot
 requests
 urllib3
 prometheus-client
+pyyaml
