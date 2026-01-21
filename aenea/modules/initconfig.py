@@ -17,7 +17,7 @@ class ConfigLoader:
         self.data = []
 
     @staticmethod
-    def load_config(config_path: str = "config.yml") -> dict:
+    def load_config(config_path: str = "config/config.yml") -> dict:
         """Load and parse a YAML configuration file."""
         try:
             # Use Path to handle file paths cross-platform
