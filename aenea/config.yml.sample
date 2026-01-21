@@ -1,14 +1,9 @@
-telegram:
-    token:
-bot:
-    botname:
-    authuser:
-    loglevel:
-ai:
-    ollama_url:
-    ollama_model:
-db:
-    sqlitepath:
-monitoring:
-    prometheus_enabled:
-    prometheus_port:
+token: "XXXXX"
+botname: "Aenea"
+authuser: "YourTelegramUser"
+loglevel: "INFO/WARN/DEBUG"
+ollama_url: "http://localhost:1234"
+ollama_model: "aenea"
+sqlitepath: "/sqlitedb"
+prometheus_enabled: False
+prometheus_port: 8000
