@@ -18,7 +18,7 @@ Built with:
 - /clear_parking - Removes all objects from the Parking.
 
 #### How to run
-Use the included file config.yml.sample to create a config.yml file and fill the following variables:
+Create a config folder at same level than python script and use the included file config.yml.sample to create a config.yml file and fill the following variables:
 
   * token: Telegram bot Token
   * botname: Your Telegram bot name. Be creative!
