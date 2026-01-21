@@ -11,3 +11,4 @@ config.example
 .idea/*
 __pycache__/*
 venv/*
+aenea/config.yml
