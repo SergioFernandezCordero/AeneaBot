@@ -18,16 +18,15 @@ Built with:
 - /clear_parking - Removes all objects from the Parking.
 
 #### How to run
-You need the following envvars as specified:
-  
-  * TOKEN: Telegram bot Token
-  * BOTNAME: Your Telegram bot name. Be creative!
-  * AUTHUSER: Telegram username allowed to use the bot (yours)
-  * LANG: Language for the Telegram APIs
-  * OLLAMA_URL: URL of the Ollama server whith will be used to provide AI. Defaults to the sidecar one (http://localhost:11434).
-  * OLLAMA_MODEL: Name of the model configured in Ollama. By default, "aenea" model is used.
-  * AENEADB: Path for the SQLite3 persistent database. Required for Parking functionality.
-  * LOGLEVEL: Log level output. See [python docs](https://docs.python.org/3/howto/logging.html#when-to-use-logging)
+Use the included file config.yml.sample to create a config.yml file and fill the following variables:
+
+  * token: Telegram bot Token
+  * botname: Your Telegram bot name. Be creative!
+  * authuser: Telegram username allowed to use the bot (yours)
+  * ollama_url: URL of the Ollama server whith will be used to provide AI.
+  * ollama_model: Name of the model configured in Ollama.
+  * sqlitepath: Path for the SQLite3 persistent database. Required for Parking functionality.
+  * loglevel: Log level output. See [python docs](https://docs.python.org/3/howto/logging.html#when-to-use-logging)
   
 You can run in a docker container this way:
 ```
@@ -37,20 +36,6 @@ docker run -d --name tu-contenedor elautoestopista/aeneabot:latest -e TOKEN="XXX
 Also you can run it on Kubernetes. [Here you can see an example](https://github.com/SergioFernandezCordero/ygdrassil-project/blob/master/ansible/roles/kube-apps/templates/aenea.j2) in how you can run it with the AeneaAI sidecar which provides your own AI using Ollama an the orca model.
 
 And that's all! Your bot is up and running. You can add the modifications you want.
-
-#### Development
-
-In order to develop you can run the bot locally:
-
-```
-export TOKEN="<token_gibberish>"
-export BOTNAME="MyBot"
-export AUTHUSER="MyTelegramUser"
-export LANG="es"
-export LOGLEVEL="DEBUG"
-
-python3 aenea/aenea.py
-```
 
 #### Manual Building
 
